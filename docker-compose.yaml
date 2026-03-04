@@ -1,0 +1,26 @@
+services:
+  product-db:
+    image: postgres:18
+    container_name: product-db
+    restart: always
+    environment:
+      POSTGRES_DB: product
+      POSTGRES_USER: fair_manager
+      POSTGRES_PASSWORD: ${PRODUCT_PG_PASSWORD}
+      TZ: Europe/Madrid
+    ports:
+      - "10000:5432"
+    volumes:
+      - productDB:/var/lib/postgresql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U fair_manager -d product" ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - "11111:8080"
+volumes:
+  productDB:

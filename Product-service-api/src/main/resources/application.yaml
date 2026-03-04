@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: Product_service
+  datasource:
+    url:
+    username:
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+  flyway:
+    enabled: true
+

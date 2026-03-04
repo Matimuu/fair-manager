@@ -1,0 +1,21 @@
+# Ignore Gradle project-specific cache directory
+.gradle
+
+# Ignore Gradle build output directory
+build
+
+
+/.env
+/Product-service-api/src/main/resources/application-omar.yaml
+/.idea/modules/Product-service-api/FairManager.Product-service-api.main.iml
+/.idea/.gitignore
+/.idea/compiler.xml
+/.idea/copilot.data.migration.ask2agent.xml
+/.idea/dataSources.xml
+/.idea/diff-generator.xml
+/.idea/FairManager.iml
+/.idea/gradle.xml
+/.idea/jpb-settings.xml
+/.idea/misc.xml
+/.idea/modules.xml
+/.idea/vcs.xml
