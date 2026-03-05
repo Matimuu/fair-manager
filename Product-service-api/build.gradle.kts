@@ -14,6 +14,9 @@ dependencies {
     implementation(libs.flyway)
     implementation(libs.flyway.database.postgresql)
 
+    implementation(libs.mapstruct)
+    annotationProcessor(libs.mapstruct.processor)
+
     compileOnly(libs.lombok)
     annotationProcessor(libs.lombok.processor)
 

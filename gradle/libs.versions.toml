@@ -5,6 +5,7 @@
 #----
 javaVersion = "25"
 springBootVersion = "4.0.3"
+mapstructVersion = "1.6.3"
 
 # Migration
 #----
@@ -36,6 +37,9 @@ data_jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa" }
 flyway = { module = "org.springframework.boot:spring-boot-starter-flyway" }
 validation = { module = "org.springframework.boot:spring-boot-starter-validation" }
 devtools = { module = "org.springframework.boot:spring-boot-devtools" }
+
+mapstruct = { module = "org.mapstruct:mapstruct", version.ref = "mapstructVersion" }
+mapstruct_processor = { module = "org.mapstruct:mapstruct-processor", version.ref = "mapstructVersion" }
 
 ## Compile only ⬇️
 # Lombok

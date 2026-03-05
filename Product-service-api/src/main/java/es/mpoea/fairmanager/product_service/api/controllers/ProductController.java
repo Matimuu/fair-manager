@@ -1,7 +1,11 @@
 package es.mpoea.fairmanager.product_service.api.controllers;
 
+import es.mpoea.fairmanager.commondata.DTO.requests.Product.CreateProductRequest;
+import es.mpoea.fairmanager.commondata.DTO.responses.Product.ProductResponse;
 import es.mpoea.fairmanager.product_service.api.services.ProductService;
 import lombok.RequiredArgsConstructor;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 //TODO: Implement all endpoints and return appropriate response.
@@ -14,8 +18,13 @@ public class ProductController {
     private final ProductService productService;
 
     @PostMapping()
-    public void createProduct() {
+    public ResponseEntity<@NotNull ProductResponse> createProduct(CreateProductRequest createThisProduct) {
 
+        
+
+
+
+        return null;
     }
 
     @PutMapping()
