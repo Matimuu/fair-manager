@@ -1,5 +1,7 @@
 package es.mpoea.fairmanager.product_service.api.services;
 
+import es.mpoea.fairmanager.commondata.DTO.requests.Product.CreateProductRequest;
+import es.mpoea.fairmanager.commondata.DTO.requests.Product.UpdateProductRequest;
 import es.mpoea.fairmanager.product_service.api.exceptions.ProductNotFoundException;
 import es.mpoea.fairmanager.product_service.api.exceptions.ProductsNotExistsException;
 import es.mpoea.fairmanager.product_service.persistence.models.Product;
@@ -16,8 +18,8 @@ import java.util.Optional;
 public class ProductService {
     private final ProductRepo productRepo;
 
-    public Product createProduct(String label, String description, String category) {
-        return productRepo.save(new Product(label, description, category));
+    public Product createProduct(CreateProductRequest createDTO) {
+        return productRepo.save(new Product(createDTO.label(), createDTO.description(), createDTO.category()));
     }
 
     public List<Product> getAllProducts() {
@@ -36,12 +38,12 @@ public class ProductService {
     }
 
     @Transactional
-    public Product updateProduct(long productId, String label, String description, String category) {
+    public Product updateProduct(long productId, UpdateProductRequest updateDTO) {
         Product product = productRepo.findById(productId).orElseThrow(() -> new ProductNotFoundException(productId));
 
-        if (label != null) product.setLabel(label);
-        if (description != null) product.setDescription(description);
-        if (category != null) product.setCategory(category);
+        if (updateDTO.label() != null) product.setLabel(updateDTO.label());
+        if (updateDTO.description() != null) product.setDescription(updateDTO.description());
+        if (updateDTO.category() != null) product.setCategory(updateDTO.category());
 
         return productRepo.save(product);
     }

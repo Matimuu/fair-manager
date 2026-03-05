@@ -1,5 +1,7 @@
 package es.mpoea.fairmanager.product_service.units;
 
+import es.mpoea.fairmanager.commondata.DTO.requests.Product.CreateProductRequest;
+import es.mpoea.fairmanager.commondata.DTO.requests.Product.UpdateProductRequest;
 import es.mpoea.fairmanager.product_service.api.exceptions.ProductNotFoundException;
 import es.mpoea.fairmanager.product_service.api.exceptions.ProductsNotExistsException;
 import es.mpoea.fairmanager.product_service.api.services.ProductService;
@@ -16,7 +18,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-public class UpdateProductRequestServiceTest {
+public class ProductServiceTests {
 
     private ProductRepo productRepo;
     private ProductService productService;
@@ -35,7 +37,9 @@ public class UpdateProductRequestServiceTest {
         when(productRepo.findById(id)).thenReturn(Optional.of(existing));
         when(productRepo.save(any(Product.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        Product result = productService.updateProduct(id, "New label", null, "New category");
+        UpdateProductRequest updateDTO = new UpdateProductRequest("New label", null, "New category");
+
+        Product result = productService.updateProduct(id, updateDTO);
 
         assertEquals("New label", result.getLabel());
         assertEquals("Old description", result.getDescription());
@@ -50,7 +54,9 @@ public class UpdateProductRequestServiceTest {
     void createProduct_shouldSaveNewProduct() {
         when(productRepo.save(any(Product.class))).thenAnswer(inv -> inv.getArgument(0));
 
-        Product result = productService.createProduct("Label", "Description", "Category");
+        CreateProductRequest createDTO = new CreateProductRequest("Label", "Description", "Category");
+
+        Product result = productService.createProduct(createDTO);
 
         ArgumentCaptor<Product> productTrap = ArgumentCaptor.forClass(Product.class);
         verify(productRepo, times(1)).save(productTrap.capture());
