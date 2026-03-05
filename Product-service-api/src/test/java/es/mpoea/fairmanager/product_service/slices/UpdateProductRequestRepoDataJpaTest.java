@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 @Testcontainers
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-public class ProductRepoDataJpaTest {
+public class UpdateProductRequestRepoDataJpaTest {
 
     @Container
     @ServiceConnection
