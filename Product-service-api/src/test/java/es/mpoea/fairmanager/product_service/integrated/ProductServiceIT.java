@@ -2,6 +2,7 @@ package es.mpoea.fairmanager.product_service.integrated;
 
 import es.mpoea.fairmanager.commondata.DTO.requests.Product.CreateProductRequest;
 import es.mpoea.fairmanager.commondata.DTO.requests.Product.UpdateProductRequest;
+import es.mpoea.fairmanager.product_service.api.exceptions.ProductNotFoundException;
 import es.mpoea.fairmanager.product_service.api.services.ProductService;
 import es.mpoea.fairmanager.product_service.persistence.models.Product;
 import es.mpoea.fairmanager.product_service.persistence.repositories.ProductRepo;
@@ -139,7 +140,7 @@ public class ProductServiceIT {
         long originalVersion = created.getVersion();
 
         Product updated = productService.updateProduct(orgID, request);
-        Product fromDB = productRepo.findById(orgID).orElseThrow(() -> new AssertionError("Product was not found in database after creation"));
+        Product fromDB = productRepo.findById(orgID).orElseThrow(() -> new AssertionError("Product was not found in database after update"));
 
         assertNotNull(fromDB.getId());
         assertNotNull(fromDB.getSku());
@@ -169,5 +170,22 @@ public class ProductServiceIT {
         assertEquals(updated.getVersion(), fromDB.getVersion());
 
         assertFalse(fromDB.getUpdatedAt().isBefore(fromDB.getCreatedAt()));
+    }
+
+    @Test
+    void deleteProduct_shouldRemoveProductFromDatabase() {
+        CreateProductRequest request = new CreateProductRequest("init label", "init description", "init category");
+        Product created = productService.createProduct(request);
+
+        long id = created.getId();
+
+        Product fromDB = productRepo.findById(id).orElseThrow(() -> new AssertionError("Product was not found in database after creation"));
+
+        assertEquals(id, fromDB.getId());
+
+        productService.deleteProduct(id);
+
+        assertFalse(productRepo.existsById(id));
+        assertThrows(ProductNotFoundException.class, () -> productService.getProductById(id));
     }
 }
