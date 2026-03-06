@@ -117,5 +117,57 @@ public class ProductServiceIT {
         assertEquals(updated.getCreatedAt(), fromDB.getCreatedAt());
         assertEquals(updated.getUpdatedAt(), fromDB.getUpdatedAt());
         assertEquals(updated.getVersion(), fromDB.getVersion());
+
+        assertFalse(fromDB.getUpdatedAt().isBefore(fromDB.getCreatedAt()));
+    }
+
+    @Test
+    void updateProduct_shouldUpdateOnlyNotNullFields() {
+        CreateProductRequest create = new CreateProductRequest("init label", "init description", "init category");
+        UpdateProductRequest request = new UpdateProductRequest("updated label", null, "updated category");
+
+        Product created = productService.createProduct(create);
+
+        long orgID = created.getId();
+        UUID originalSku = created.getSku();
+
+        String orgDescription = created.getDescription();
+
+        Instant orgCreatedAt = created.getCreatedAt();
+        Instant orgUpdatedAt = created.getUpdatedAt();
+
+        long originalVersion = created.getVersion();
+
+        Product updated = productService.updateProduct(orgID, request);
+        Product fromDB = productRepo.findById(orgID).orElseThrow(() -> new AssertionError("Product was not found in database after creation"));
+
+        assertNotNull(fromDB.getId());
+        assertNotNull(fromDB.getSku());
+
+        assertEquals(orgID, fromDB.getId());
+        assertEquals(originalSku, fromDB.getSku());
+
+        assertEquals("updated label", fromDB.getLabel());
+        assertEquals(orgDescription, fromDB.getDescription());
+        assertEquals("updated category", fromDB.getCategory());
+
+        assertNotNull(fromDB.getCreatedAt());
+        assertNotNull(fromDB.getUpdatedAt());
+
+        assertEquals(orgCreatedAt, fromDB.getCreatedAt());
+        assertNotEquals(orgUpdatedAt, fromDB.getUpdatedAt());
+
+        assertNotEquals(originalVersion, fromDB.getVersion());
+
+        assertEquals(updated.getId(), fromDB.getId());
+        assertEquals(updated.getSku(), fromDB.getSku());
+        assertEquals(updated.getLabel(), fromDB.getLabel());
+        assertEquals(updated.getDescription(), fromDB.getDescription());
+        assertEquals(updated.getCategory(), fromDB.getCategory());
+        assertEquals(updated.getCreatedAt(), fromDB.getCreatedAt());
+        assertEquals(updated.getUpdatedAt(), fromDB.getUpdatedAt());
+        assertEquals(updated.getVersion(), fromDB.getVersion());
+
+        assertFalse(fromDB.getUpdatedAt().isBefore(fromDB.getCreatedAt()));
     }
 }
