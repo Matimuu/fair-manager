@@ -1,6 +1,7 @@
 package es.mpoea.fairmanager.product_service.integrated;
 
 import es.mpoea.fairmanager.commondata.DTO.requests.Product.CreateProductRequest;
+import es.mpoea.fairmanager.commondata.DTO.requests.Product.UpdateProductRequest;
 import es.mpoea.fairmanager.product_service.api.services.ProductService;
 import es.mpoea.fairmanager.product_service.persistence.models.Product;
 import es.mpoea.fairmanager.product_service.persistence.repositories.ProductRepo;
@@ -12,6 +13,9 @@ import org.springframework.boot.testcontainers.service.connection.ServiceConnect
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+
+import java.time.Instant;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -69,5 +73,49 @@ public class ProductServiceIT {
         assertFalse(sameProductFromDB.getUpdatedAt().isBefore(sameProductFromDB.getCreatedAt()));
 
         assertEquals(createdProduct.getVersion(), sameProductFromDB.getVersion());
+    }
+
+    @Test
+    void updateProduct_shouldUpdateAllFields() {
+        CreateProductRequest createProduct = new CreateProductRequest("Create Integrated Test Product", "INT description", "INT category");
+        UpdateProductRequest request = new UpdateProductRequest("updated label", "updated description", "updated category");
+
+        Product created = productService.createProduct(createProduct);
+
+        Long productId = created.getId();
+        UUID originalSku = created.getSku();
+        Instant originalCreatedAt = created.getCreatedAt();
+        Instant originalUpdatedAt = created.getUpdatedAt();
+        long originalVersion = created.getVersion();
+
+        Product updated = productService.updateProduct(productId, request);
+        Product fromDB = productRepo.findById(productId).orElseThrow();
+
+        assertNotNull(fromDB.getId());
+        assertNotNull(fromDB.getSku());
+
+        assertEquals(productId, fromDB.getId());
+        assertEquals(originalSku, fromDB.getSku());
+
+        assertEquals("updated label", fromDB.getLabel());
+        assertEquals("updated description", fromDB.getDescription());
+        assertEquals("updated category", fromDB.getCategory());
+
+        assertNotNull(fromDB.getCreatedAt());
+        assertNotNull(fromDB.getUpdatedAt());
+
+        assertEquals(originalCreatedAt, fromDB.getCreatedAt());
+        assertNotEquals(fromDB.getUpdatedAt(), originalUpdatedAt);
+
+        assertNotEquals(originalVersion, fromDB.getVersion());
+
+        assertEquals(updated.getId(), fromDB.getId());
+        assertEquals(updated.getSku(), fromDB.getSku());
+        assertEquals(updated.getLabel(), fromDB.getLabel());
+        assertEquals(updated.getDescription(), fromDB.getDescription());
+        assertEquals(updated.getCategory(), fromDB.getCategory());
+        assertEquals(updated.getCreatedAt(), fromDB.getCreatedAt());
+        assertEquals(updated.getUpdatedAt(), fromDB.getUpdatedAt());
+        assertEquals(updated.getVersion(), fromDB.getVersion());
     }
 }
