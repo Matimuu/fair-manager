@@ -24,8 +24,6 @@ import static org.junit.jupiter.api.Assertions.*;
  * Integration test for ProductService with Repository, JPA and PostgreSQL.
  */
 
-//TODO: add delete not existed product;
-
 @Testcontainers
 @SpringBootTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
@@ -200,7 +198,7 @@ public class ProductServiceIT {
 
     @Test
     void deleteProduct_shouldThrowExceptionIfProductNotExists() {
-        assertThrows(ProductNotFoundException.class, () -> productService.getProductById(9999999L));
+        assertThrows(ProductNotFoundException.class, () -> productService.deleteProduct(9999999L));
     }
 
     @Test
