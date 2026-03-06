@@ -5,6 +5,7 @@ import es.mpoea.fairmanager.commondata.DTO.responses.Product.ProductResponse;
 import es.mpoea.fairmanager.product_service.api.mappers.ProductMapper;
 import es.mpoea.fairmanager.product_service.api.services.ProductService;
 import es.mpoea.fairmanager.product_service.persistence.models.Product;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,7 +24,7 @@ public class ProductController {
     private final ProductMapper productMapper;
 
     @PostMapping()
-    public ResponseEntity<ProductResponse> createProduct(CreateProductRequest productDTO, UriComponentsBuilder uriComponentsBuilder) {
+    public ResponseEntity<ProductResponse> createProduct(@Valid @RequestBody CreateProductRequest productDTO, UriComponentsBuilder uriComponentsBuilder) {
 
         Product createdProduct = productService.createProduct(productDTO);
 

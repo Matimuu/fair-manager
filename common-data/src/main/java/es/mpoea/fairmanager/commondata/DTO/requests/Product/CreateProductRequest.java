@@ -5,14 +5,14 @@ import jakarta.validation.constraints.Size;
 
 public record CreateProductRequest(
 
-        @NotBlank
-        @Size(max = 240)
+        @NotBlank(message = "Label is required.")
+        @Size(max = 240, message = "Label must not exceed 240 characters.")
         String label,
 
         String description,
 
-        @NotBlank
-        @Size(max = 120)
+        @NotBlank(message = "Category is required.")
+        @Size(max = 120, message = "Category must not exceed 120 characters.")
         String category
 ) {
 }
