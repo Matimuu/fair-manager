@@ -63,4 +63,57 @@ public class ProductControllerTest {
         verify(productMapper, times(1)).toProductResponse(any(Product.class));
     }
 
+    @Test
+    void postProduct_shouldReturnBadRequestWhenLabelIsBlank() throws Exception {
+        CreateProductRequest request = new CreateProductRequest("", "Description", "Category");
+
+        mockMvc.perform(post("/api/v1/product")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.status").value("400"))
+                .andExpect(jsonPath("$.error").value("Bad Request"))
+                .andExpect(jsonPath("$.message").value("One or more fields failed validation. Please check the errors and try again."))
+                .andExpect(jsonPath("$.path").value("/api/v1/product"))
+                .andExpect(jsonPath("$.errors.label").value("Label is required."));
+
+        verifyNoInteractions(productService, productMapper);
+    }
+
+    @Test
+    void postProduct_shouldReturnBadRequestWhenCategoryIsNull() throws Exception {
+        CreateProductRequest request = new CreateProductRequest("Label", "Description", null);
+
+        mockMvc.perform(post("/api/v1/product")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.status").value("400"))
+                .andExpect(jsonPath("$.error").value("Bad Request"))
+                .andExpect(jsonPath("$.message").value("One or more fields failed validation. Please check the errors and try again."))
+                .andExpect(jsonPath("$.path").value("/api/v1/product"))
+                .andExpect(jsonPath("$.errors.category").value("Category is required."));
+
+        verifyNoInteractions(productService, productMapper);
+    }
+    @Test
+    void postProduct_shouldReturnBadRequestWhenCategoryIsNullAndLabelIsBlank() throws Exception {
+        CreateProductRequest request = new CreateProductRequest("", "Description", null);
+
+        mockMvc.perform(post("/api/v1/product")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.status").value("400"))
+                .andExpect(jsonPath("$.error").value("Bad Request"))
+                .andExpect(jsonPath("$.message").value("One or more fields failed validation. Please check the errors and try again."))
+                .andExpect(jsonPath("$.path").value("/api/v1/product"))
+                .andExpect(jsonPath("$.errors.category").value("Category is required."))
+                .andExpect(jsonPath("$.errors.label").value("Label is required."));
+
+        verifyNoInteractions(productService, productMapper);
+    }
 }
