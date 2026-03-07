@@ -6,14 +6,6 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class ProductMapper {
-    public void toCreateProduct() {
-//        TODO: implement this method
-    }
-
-    public void toUpdateProduct() {
-//        TODO: implement this method
-    }
-
     public ProductResponse toProductResponse(Product product) {
         return new ProductResponse(
                 product.getId(),
