@@ -1,5 +1,6 @@
 package es.mpoea.fairmanager.product_service.api.configuration;
 
+import es.mpoea.fairmanager.product_service.api.exceptions.ProductNotFoundException;
 import es.mpoea.fairmanager.product_service.api.exceptions.ProductsNotExistsException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
@@ -44,6 +45,24 @@ public class ProductExceptionHandler {
     @ExceptionHandler(ProductsNotExistsException.class)
     public ResponseEntity<ValidationErrorResponse> handleProductsNotExistsException(
             ProductsNotExistsException ex,
+            HttpServletRequest request
+    ) {
+
+        ValidationErrorResponse response = new ValidationErrorResponse(
+                Instant.now(),
+                HttpStatus.NOT_FOUND.value(),
+                "Not Found",
+                ex.getMessage(),
+                request.getRequestURI(),
+                Map.of()
+        );
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    @ExceptionHandler(ProductNotFoundException.class)
+    public ResponseEntity<ValidationErrorResponse> handleProductNotFoundException(
+            ProductNotFoundException ex,
             HttpServletRequest request
     ) {
 

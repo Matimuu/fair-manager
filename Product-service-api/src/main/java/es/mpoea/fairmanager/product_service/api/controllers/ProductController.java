@@ -16,6 +16,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 //TODO: Implement all endpoints and return appropriate response.
+//TODO: Change implementation from providing DTO to the service layer.
 
 @RestController
 @RequestMapping("/api/v1/product")
@@ -63,8 +64,7 @@ public class ProductController {
     }
 
     @GetMapping("/{id}")
-    public void getProductById(@PathVariable long id) {
-//        TODO
+    public ResponseEntity<ProductResponse> getProductById(@PathVariable("id") long id) {
+        return ResponseEntity.ok(productMapper.toProductResponse(productService.getProductById(id)));
     }
 }
-//WARN: Вопрос на полях, лучше оставлять мэппер в сервисе или контроллере ?

@@ -3,6 +3,7 @@ package es.mpoea.fairmanager.product_service.slices;
 import es.mpoea.fairmanager.commondata.DTO.requests.Product.CreateProductRequest;
 import es.mpoea.fairmanager.commondata.DTO.responses.Product.ProductResponse;
 import es.mpoea.fairmanager.product_service.api.controllers.ProductController;
+import es.mpoea.fairmanager.product_service.api.exceptions.ProductNotFoundException;
 import es.mpoea.fairmanager.product_service.api.exceptions.ProductsNotExistsException;
 import es.mpoea.fairmanager.product_service.api.mappers.ProductMapper;
 import es.mpoea.fairmanager.product_service.api.services.ProductService;
@@ -162,5 +163,39 @@ public class ProductControllerTest {
                 .andExpect(jsonPath("$.path").value("/api/v1/product"));
 
         verify(productService, times(1)).getAllProducts();
+    }
+
+    @Test
+    void getProductById_shouldReturnOkWithProduct() throws Exception {
+        Product product = new Product("Label", "Description", "Category");
+
+        when(productService.getProductById(1L)).thenReturn(product);
+        when(productMapper.toProductResponse(product)).thenReturn(new ProductResponse(1L, UUID.randomUUID(), product.getLabel(), product.getDescription(), product.getCategory(), now(), now()));
+
+        mockMvc.perform(get("/api/v1/product/1"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.label").value("Label"))
+                .andExpect(jsonPath("$.description").value("Description"))
+                .andExpect(jsonPath("$.category").value("Category"));
+
+        verify(productService, times(1)).getProductById(1L);
+        verify(productMapper, times(1)).toProductResponse(product);
+
+    }
+
+    @Test
+    void getProductById_shouldThrowProductNotFoundException() throws Exception{
+        when(productService.getProductById(1L)).thenThrow(new ProductNotFoundException(1L));
+
+        mockMvc.perform(get("/api/v1/product/1"))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.status").value("404"))
+                .andExpect(jsonPath("$.error").value("Not Found"))
+                .andExpect(jsonPath("$.message").value("Product with id 1 not found"))
+                .andExpect(jsonPath("$.path").value("/api/v1/product/1"));
+
+        verify(productService, times(1)).getProductById(1L);
     }
 }
