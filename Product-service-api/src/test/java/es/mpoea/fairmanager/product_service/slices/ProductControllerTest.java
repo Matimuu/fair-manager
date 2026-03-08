@@ -21,8 +21,7 @@ import java.util.UUID;
 
 import static java.time.Instant.now;
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(ProductController.class)
@@ -185,7 +184,7 @@ public class ProductControllerTest {
     }
 
     @Test
-    void getProductById_shouldThrowProductNotFoundException() throws Exception{
+    void getProductById_shouldThrowProductNotFoundException() throws Exception {
         when(productService.getProductById(1L)).thenThrow(new ProductNotFoundException(1L));
 
         mockMvc.perform(get("/api/v1/product/1"))
@@ -197,5 +196,29 @@ public class ProductControllerTest {
                 .andExpect(jsonPath("$.path").value("/api/v1/product/1"));
 
         verify(productService, times(1)).getProductById(1L);
+    }
+
+    @Test
+    void deleteProduct_shouldReturnOk() throws Exception {
+
+        mockMvc.perform(delete("/api/v1/product/1"))
+                .andExpect(status().isOk());
+
+        verify(productService, times(1)).deleteProduct(1L);
+    }
+
+    @Test
+    void deleteProduct_shouldThrowProductNotFoundException() throws Exception {
+        doThrow(new ProductNotFoundException(1L))
+                .when(productService)
+                .deleteProduct(1L);
+
+        mockMvc.perform(delete("/api/v1/product/1"))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.status").value("404"))
+                .andExpect(jsonPath("$.error").value("Not Found"))
+                .andExpect(jsonPath("$.message").value("Product with id 1 not found"))
+                .andExpect(jsonPath("$.path").value("/api/v1/product/1"));
     }
 }

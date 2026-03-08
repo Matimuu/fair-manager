@@ -28,7 +28,6 @@ public class ProductController {
 
     @PostMapping()
     public ResponseEntity<ProductResponse> createProduct(@Valid @RequestBody CreateProductRequest productDTO, UriComponentsBuilder uriComponentsBuilder) {
-
         Product createdProduct = productService.createProduct(productDTO);
 
         URI location = uriComponentsBuilder
@@ -46,14 +45,15 @@ public class ProductController {
 //        TODO
     }
 
-    @DeleteMapping()
-    public void deleteProduct() {
-//        TODO
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteProduct(@PathVariable("id") long id) {
+        productService.deleteProduct(id);
+
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping()
     public ResponseEntity<List<ProductResponse>> getAllProducts() {
-
         List<Product> products = productService.getAllProducts();
 
         List<ProductResponse> productResponses = new LinkedList<>(
