@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
+import java.util.LinkedList;
+import java.util.List;
 
 //TODO: Implement all endpoints and return appropriate response.
 
@@ -49,13 +51,20 @@ public class ProductController {
     }
 
     @GetMapping()
-    public void getAllProducts() {
-//        TODO
+    public ResponseEntity<List<ProductResponse>> getAllProducts() {
+
+        List<Product> products = productService.getAllProducts();
+
+        List<ProductResponse> productResponses = new LinkedList<>(
+                products.stream().map(productMapper::toProductResponse).toList()
+        );
+
+        return ResponseEntity.ok(productResponses);
     }
 
     @GetMapping("/{id}")
     public void getProductById(@PathVariable long id) {
 //        TODO
     }
-
 }
+//WARN: Вопрос на полях, лучше оставлять мэппер в сервисе или контроллере ?

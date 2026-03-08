@@ -3,6 +3,7 @@ package es.mpoea.fairmanager.product_service.slices;
 import es.mpoea.fairmanager.commondata.DTO.requests.Product.CreateProductRequest;
 import es.mpoea.fairmanager.commondata.DTO.responses.Product.ProductResponse;
 import es.mpoea.fairmanager.product_service.api.controllers.ProductController;
+import es.mpoea.fairmanager.product_service.api.exceptions.ProductsNotExistsException;
 import es.mpoea.fairmanager.product_service.api.mappers.ProductMapper;
 import es.mpoea.fairmanager.product_service.api.services.ProductService;
 import es.mpoea.fairmanager.product_service.persistence.models.Product;
@@ -14,10 +15,12 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
+import java.util.List;
 import java.util.UUID;
 
 import static java.time.Instant.now;
 import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -98,6 +101,7 @@ public class ProductControllerTest {
 
         verifyNoInteractions(productService, productMapper);
     }
+
     @Test
     void postProduct_shouldReturnBadRequestWhenCategoryIsNullAndLabelIsBlank() throws Exception {
         CreateProductRequest request = new CreateProductRequest("", "Description", null);
@@ -115,5 +119,48 @@ public class ProductControllerTest {
                 .andExpect(jsonPath("$.errors.label").value("Label is required."));
 
         verifyNoInteractions(productService, productMapper);
+    }
+
+    @Test
+    void getProducts_shouldReturnOkWithProductList() throws Exception {
+
+        Product product1 = new Product("Label1", "Description1", "Category1");
+        Product product2 = new Product("Label2", "Description2", "Category2");
+
+        when(productService.getAllProducts()).thenReturn(List.of(product1, product2));
+
+        when(productMapper.toProductResponse(product1)).thenReturn(new ProductResponse(1L, UUID.randomUUID(), product1.getLabel(), product1.getDescription(), product1.getCategory(), now(), now()));
+        when(productMapper.toProductResponse(product2)).thenReturn(new ProductResponse(2L, UUID.randomUUID(), product2.getLabel(), product2.getDescription(), product2.getCategory(), now(), now()));
+
+        mockMvc.perform(get("/api/v1/product"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$").isArray())
+                .andExpect(jsonPath("$.length()").value(2))
+                .andExpect(jsonPath("$[0].label").value("Label1"))
+                .andExpect(jsonPath("$[0].description").value("Description1"))
+                .andExpect(jsonPath("$[0].category").value("Category1"))
+                .andExpect(jsonPath("$[1].label").value("Label2"))
+                .andExpect(jsonPath("$[1].description").value("Description2"))
+                .andExpect(jsonPath("$[1].category").value("Category2"));
+
+        verify(productService, times(1)).getAllProducts();
+        verify(productMapper, times(2)).toProductResponse(any(Product.class));
+    }
+
+    @Test
+    void getProducts_shouldThrowProductsNotExistsException() throws Exception {
+
+        when(productService.getAllProducts()).thenThrow(new ProductsNotExistsException());
+
+        mockMvc.perform(get("/api/v1/product"))
+                .andExpect(status().isNotFound())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.status").value("404"))
+                .andExpect(jsonPath("$.error").value("Not Found"))
+                .andExpect(jsonPath("$.message").value("No products found in the database"))
+                .andExpect(jsonPath("$.path").value("/api/v1/product"));
+
+        verify(productService, times(1)).getAllProducts();
     }
 }
