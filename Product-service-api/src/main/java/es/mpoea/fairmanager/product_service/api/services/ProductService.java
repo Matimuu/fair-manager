@@ -1,7 +1,7 @@
 package es.mpoea.fairmanager.product_service.api.services;
 
-import es.mpoea.fairmanager.commondata.DTO.requests.Product.CreateProductRequest;
-import es.mpoea.fairmanager.commondata.DTO.requests.Product.UpdateProductRequest;
+import es.mpoea.fairmanager.product_service.api.commands.CreateProductCommand;
+import es.mpoea.fairmanager.product_service.api.commands.UpdateProductCommand;
 import es.mpoea.fairmanager.product_service.api.exceptions.ProductNotFoundException;
 import es.mpoea.fairmanager.product_service.api.exceptions.ProductsNotExistsException;
 import es.mpoea.fairmanager.product_service.persistence.models.Product;
@@ -18,8 +18,8 @@ import java.util.Optional;
 public class ProductService {
     private final ProductRepo productRepo;
 
-    public Product createProduct(CreateProductRequest createDTO) {
-        return productRepo.save(new Product(createDTO.label(), createDTO.description(), createDTO.category()));
+    public Product createProduct(CreateProductCommand createCommand) {
+        return productRepo.save(new Product(createCommand.label(), createCommand.description(), createCommand.category()));
     }
 
     public List<Product> getAllProducts() {
@@ -38,12 +38,12 @@ public class ProductService {
     }
 
     @Transactional
-    public Product updateProduct(long productId, UpdateProductRequest updateDTO) {
+    public Product updateProduct(long productId, UpdateProductCommand updateCommand) {
         Product product = productRepo.findById(productId).orElseThrow(() -> new ProductNotFoundException(productId));
 
-        if (updateDTO.label() != null) product.setLabel(updateDTO.label());
-        if (updateDTO.description() != null) product.setDescription(updateDTO.description());
-        if (updateDTO.category() != null) product.setCategory(updateDTO.category());
+        if (updateCommand.label() != null) product.setLabel(updateCommand.label());
+        if (updateCommand.description() != null) product.setDescription(updateCommand.description());
+        if (updateCommand.category() != null) product.setCategory(updateCommand.category());
 
         return productRepo.save(product);
     }

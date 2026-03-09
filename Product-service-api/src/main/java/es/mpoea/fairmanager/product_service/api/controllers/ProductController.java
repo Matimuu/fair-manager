@@ -3,6 +3,8 @@ package es.mpoea.fairmanager.product_service.api.controllers;
 import es.mpoea.fairmanager.commondata.DTO.requests.Product.CreateProductRequest;
 import es.mpoea.fairmanager.commondata.DTO.requests.Product.UpdateProductRequest;
 import es.mpoea.fairmanager.commondata.DTO.responses.Product.ProductResponse;
+import es.mpoea.fairmanager.product_service.api.commands.CreateProductCommand;
+import es.mpoea.fairmanager.product_service.api.commands.UpdateProductCommand;
 import es.mpoea.fairmanager.product_service.api.mappers.ProductMapper;
 import es.mpoea.fairmanager.product_service.api.services.ProductService;
 import es.mpoea.fairmanager.product_service.persistence.models.Product;
@@ -29,7 +31,9 @@ public class ProductController {
 
     @PostMapping()
     public ResponseEntity<ProductResponse> createProduct(@Valid @RequestBody CreateProductRequest productDTO, UriComponentsBuilder uriComponentsBuilder) {
-        Product createdProduct = productService.createProduct(productDTO);
+
+        CreateProductCommand command = productMapper.toCreateProductCommand(productDTO);
+        Product createdProduct = productService.createProduct(command);
 
         URI location = uriComponentsBuilder
                 .path("/api/v1/product/{id}")
@@ -44,7 +48,8 @@ public class ProductController {
     @PutMapping("/{id}")
     public ResponseEntity<ProductResponse> updateProduct(@PathVariable("id") long id, @Valid @RequestBody UpdateProductRequest productDTO) {
 
-        Product updatedProduct = productService.updateProduct(id, productDTO);
+        UpdateProductCommand command = productMapper.toUpdateProductCommand(productDTO);
+        Product updatedProduct = productService.updateProduct(id, command);
 
         ProductResponse productResponse = productMapper.toProductResponse(updatedProduct);
 
