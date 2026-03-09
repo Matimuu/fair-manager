@@ -1,12 +1,14 @@
 package es.mpoea.fairmanager.product_service.api.controllers;
 
 import es.mpoea.fairmanager.commondata.DTO.requests.Product.CreateProductRequest;
+import es.mpoea.fairmanager.commondata.DTO.requests.Product.UpdateProductRequest;
 import es.mpoea.fairmanager.commondata.DTO.responses.Product.ProductResponse;
 import es.mpoea.fairmanager.product_service.api.mappers.ProductMapper;
 import es.mpoea.fairmanager.product_service.api.services.ProductService;
 import es.mpoea.fairmanager.product_service.persistence.models.Product;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -15,7 +17,6 @@ import java.net.URI;
 import java.util.LinkedList;
 import java.util.List;
 
-//TODO: Implement all endpoints and return appropriate response.
 //TODO: Change implementation from providing DTO to the service layer.
 
 @RestController
@@ -40,9 +41,14 @@ public class ProductController {
         return ResponseEntity.created(location).body(productResponse);
     }
 
-    @PutMapping()
-    public void updateProduct() {
-//        TODO
+    @PutMapping("/{id}")
+    public ResponseEntity<ProductResponse> updateProduct(@PathVariable("id") long id, @Valid @RequestBody UpdateProductRequest productDTO) {
+
+        Product updatedProduct = productService.updateProduct(id, productDTO);
+
+        ProductResponse productResponse = productMapper.toProductResponse(updatedProduct);
+
+        return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(productResponse);
     }
 
     @DeleteMapping("/{id}")
