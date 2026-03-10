@@ -1,12 +1,12 @@
 services:
-  product-db:
+  catalog_service_db:
     image: postgres:18
-    container_name: product-db
+    container_name: category-db
     restart: always
     environment:
-      POSTGRES_DB: product
+      POSTGRES_DB: catalog_service_db
       POSTGRES_USER: fair_manager
-      POSTGRES_PASSWORD: ${PRODUCT_PG_PASSWORD}
+      POSTGRES_PASSWORD: ${CATALOG_PG_PASSWORD}
       TZ: Europe/Madrid
     ports:
       - "10000:5432"

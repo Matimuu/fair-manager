@@ -6,8 +6,8 @@ build
 
 
 /.env
-/Product-service-api/src/main/resources/application-omar.yaml
-/.idea/modules/Product-service-api/FairManager.Product-service-api.main.iml
+/Catalog-service-api/src/main/resources/application-omar.yaml
+/.idea/modules/Catalog-service-api/FairManager.Catalog-service-api.main.iml
 /.idea/.gitignore
 /.idea/compiler.xml
 /.idea/copilot.data.migration.ask2agent.xml

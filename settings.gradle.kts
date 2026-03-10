@@ -7,4 +7,4 @@
  */
 
 rootProject.name = "FairManager"
-include("Product-service-api", "common-data")
+include("Catalog-service-api", "common-data")
