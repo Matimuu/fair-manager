@@ -2,6 +2,7 @@ package es.mpoea.fairmanager.catalog_service.api.mappers;
 
 import es.mpoea.fairmanager.commondata.DTO.requests.Product.CreateProductRequest;
 import es.mpoea.fairmanager.commondata.DTO.requests.Product.UpdateProductRequest;
+import es.mpoea.fairmanager.commondata.DTO.responses.Category.CategoryResponse;
 import es.mpoea.fairmanager.commondata.DTO.responses.Product.ProductResponse;
 import es.mpoea.fairmanager.catalog_service.api.commands.CreateProductCommand;
 import es.mpoea.fairmanager.catalog_service.api.commands.UpdateProductCommand;
@@ -16,9 +17,14 @@ public class ProductMapper {
                 product.getSku(),
                 product.getLabel(),
                 product.getDescription(),
-                product.getCategory(),
                 product.getCreatedAt(),
-                product.getUpdatedAt()
+                product.getUpdatedAt(),
+                new CategoryResponse(
+                        product.getCategory().getId(),
+                        product.getCategory().getName(),
+                        product.getCreatedAt(),
+                        product.getUpdatedAt()
+                )
         );
     }
 

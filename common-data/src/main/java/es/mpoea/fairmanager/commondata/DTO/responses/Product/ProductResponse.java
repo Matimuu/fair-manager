@@ -1,5 +1,7 @@
 package es.mpoea.fairmanager.commondata.DTO.responses.Product;
 
+import es.mpoea.fairmanager.commondata.DTO.responses.Category.CategoryResponse;
+
 import java.time.Instant;
 import java.util.UUID;
 
@@ -8,8 +10,8 @@ public record ProductResponse(
         UUID sku,
         String label,
         String description,
-        String category,
         Instant createdAt,
-        Instant updatedAt
+        Instant updatedAt,
+        CategoryResponse category
 ) {
 }

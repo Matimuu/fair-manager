@@ -1,5 +1,6 @@
 package es.mpoea.fairmanager.catalog_service.persistence.models;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -12,7 +13,6 @@ import java.util.UUID;
 @Table(name = "products")
 
 @NoArgsConstructor
-@AllArgsConstructor
 @Getter
 public class Product {
     @Id
@@ -35,9 +35,6 @@ public class Product {
     @Setter
     private String description;
 
-    @Column(name = "category", nullable = false, length = 120)
-    @Setter
-    private String category;
 
     @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false, columnDefinition = "timestamptz")
@@ -51,7 +48,12 @@ public class Product {
     @Column(name = "version", nullable = false)
     private Long version;
 
-    public Product(String label, String description, String category) {
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "category_id")
+    @Setter
+    private Category category;
+
+    public Product(String label, String description, Category category) {
         this.sku = UUID.randomUUID();
 
         this.label = label;

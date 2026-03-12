@@ -5,13 +5,14 @@ import es.mpoea.fairmanager.catalog_service.api.commands.UpdateProductCommand;
 import es.mpoea.fairmanager.catalog_service.api.exceptions.ProductNotFoundException;
 import es.mpoea.fairmanager.catalog_service.api.exceptions.ProductsNotExistsException;
 import es.mpoea.fairmanager.catalog_service.api.services.ProductService;
+import es.mpoea.fairmanager.catalog_service.persistence.models.Category;
 import es.mpoea.fairmanager.catalog_service.persistence.models.Product;
+import es.mpoea.fairmanager.catalog_service.persistence.repositories.CategoryRepo;
 import es.mpoea.fairmanager.catalog_service.persistence.repositories.ProductRepo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,71 +22,81 @@ import static org.mockito.Mockito.*;
 public class ProductServiceTests {
 
     private ProductRepo productRepo;
+    private CategoryRepo categoryRepo;
     private ProductService productService;
+
+    private static final Long EXISTING_CATEGORY_ID = 1L;
+    private static final Long EXISTING_PRODUCT_ID = 10L;
+    private static final Category EXISTING_CATEGORY = new Category("Existing category");
 
     @BeforeEach
     void setUp() {
         productRepo = mock(ProductRepo.class);
-        productService = new ProductService(productRepo);
+        categoryRepo = mock(CategoryRepo.class);
+        productService = new ProductService(productRepo, categoryRepo);
     }
 
     @Test
     void updateProduct_shouldUpdateOnlyNonNullFields() {
-        long id = 10L;
-        Product existing = new Product("Oldlabel", "Old description", "Old category");
+        Product existing = new Product("Oldlabel", "Old description", EXISTING_CATEGORY);
+        Category newCategory = new Category("New category");
+        UpdateProductCommand command = new UpdateProductCommand("New label", null, 2L);
 
-        when(productRepo.findById(id)).thenReturn(Optional.of(existing));
-        when(productRepo.save(any(Product.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(productRepo.findById(EXISTING_PRODUCT_ID)).thenReturn(Optional.of(existing));
+        when(productRepo.save(existing)).thenReturn(existing);
+        when(categoryRepo.findById(2L)).thenReturn(Optional.of(newCategory));
 
-        UpdateProductCommand command = new UpdateProductCommand("New label", null, "New category");
-
-        Product result = productService.updateProduct(id, command);
+        Product result = productService.updateProduct(EXISTING_PRODUCT_ID, command);
 
         assertEquals("New label", result.getLabel());
         assertEquals("Old description", result.getDescription());
-        assertEquals("New category", result.getCategory());
+        assertEquals(newCategory, result.getCategory());
 
         ArgumentCaptor<Product> captor = ArgumentCaptor.forClass(Product.class);
+
         verify(productRepo).save(captor.capture());
+        verify(categoryRepo).findById(2L);
+
         assertSame(existing, captor.getValue(), "The same product instance should be saved");
     }
 
     @Test
     void createProduct_shouldSaveNewProduct() {
         when(productRepo.save(any(Product.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(categoryRepo.findById(EXISTING_CATEGORY_ID)).thenReturn(Optional.of(EXISTING_CATEGORY));
 
-        CreateProductCommand command = new CreateProductCommand("Label", "Description", "Category");
+        CreateProductCommand command = new CreateProductCommand("Label", "Description", EXISTING_CATEGORY_ID);
 
         Product result = productService.createProduct(command);
 
         ArgumentCaptor<Product> productTrap = ArgumentCaptor.forClass(Product.class);
+
         verify(productRepo, times(1)).save(productTrap.capture());
+        verify(categoryRepo, times(1)).findById(EXISTING_CATEGORY_ID);
 
         Product saved = productTrap.getValue();
 
 //        Check saved product
         assertEquals("Label", saved.getLabel());
         assertEquals("Description", saved.getDescription());
-        assertEquals("Category", saved.getCategory());
+        assertEquals(EXISTING_CATEGORY, saved.getCategory());
 
 //        Check product returned by service
         assertEquals("Label", result.getLabel());
         assertEquals("Description", result.getDescription());
-        assertEquals("Category", result.getCategory());
+        assertEquals(EXISTING_CATEGORY, result.getCategory());
     }
 
     @Test
     void deleteProduct_shouldDeleteExistingProduct() {
-        long id = 10L;
+        when(productRepo.existsById(EXISTING_PRODUCT_ID)).thenReturn(true);
 
-        when(productRepo.existsById(id)).thenReturn(true);
+        assertDoesNotThrow(() -> productService.deleteProduct(EXISTING_PRODUCT_ID));
 
-        assertDoesNotThrow(() -> productService.deleteProduct(id));
+        verify(productRepo, times(1)).existsById(EXISTING_PRODUCT_ID);
+        verify(productRepo, times(1)).deleteById(EXISTING_PRODUCT_ID);
 
-        verify(productRepo, times(1)).existsById(id);
-        verify(productRepo, times(1)).deleteById(id);
-
-        verifyNoMoreInteractions(productRepo);
+        verifyNoMoreInteractions(productRepo, categoryRepo);
     }
 
     @Test
@@ -99,24 +110,23 @@ public class ProductServiceTests {
         verify(productRepo, times(1)).existsById(id);
         verify(productRepo, never()).deleteById(anyLong());
         verifyNoMoreInteractions(productRepo);
+        verifyNoMoreInteractions(categoryRepo);
     }
 
     @Test
     void getProductById_shouldReturnProduct_whenFound() {
-        long id = 10L;
+        Product existing = new Product("Label", "Description", EXISTING_CATEGORY);
 
-        Product existing = new Product("Label", "Description", "Category");
+        when(productRepo.findById(EXISTING_PRODUCT_ID)).thenReturn(Optional.of(existing));
 
-        when(productRepo.findById(id)).thenReturn(Optional.of(existing));
-
-        Product result = productService.getProductById(id);
+        Product result = productService.getProductById(EXISTING_PRODUCT_ID);
 
         assertEquals(existing.getLabel(), result.getLabel());
         assertEquals(existing.getDescription(), result.getDescription());
         assertEquals(existing.getCategory(), result.getCategory());
 
-        verify(productRepo, times(1)).findById(id);
-        verifyNoMoreInteractions(productRepo);
+        verify(productRepo, times(1)).findById(EXISTING_PRODUCT_ID);
+        verifyNoMoreInteractions(productRepo, categoryRepo);
     }
 
     @Test
@@ -128,15 +138,15 @@ public class ProductServiceTests {
         assertThrows(ProductNotFoundException.class, () -> productService.getProductById(id));
 
         verify(productRepo, times(1)).findById(id);
-        verifyNoMoreInteractions(productRepo);
+        verifyNoMoreInteractions(productRepo, categoryRepo);
     }
 
     @Test
     void getAllProducts_shouldReturnProductsList() {
-        List<Product> initialProducts = new ArrayList<>();
-
-        initialProducts.add(new Product("Label1", "Description1", "Category1"));
-        initialProducts.add(new Product("Label2", "Description2", "Category2"));
+        List<Product> initialProducts = List.of(
+                new Product("Label1", "Description1", EXISTING_CATEGORY),
+                new Product("Label2", "Description2", EXISTING_CATEGORY)
+        );
 
         when(productRepo.findAll()).thenReturn(initialProducts);
 
@@ -145,7 +155,7 @@ public class ProductServiceTests {
         assertSame(initialProducts, result);
 
         verify(productRepo, times(1)).findAll();
-        verifyNoMoreInteractions(productRepo);
+        verifyNoMoreInteractions(productRepo, categoryRepo);
     }
 
     @Test
@@ -155,6 +165,6 @@ public class ProductServiceTests {
         assertThrows(ProductsNotExistsException.class, () -> productService.getAllProducts());
 
         verify(productRepo, times(1)).findAll();
-        verifyNoMoreInteractions(productRepo);
+        verifyNoMoreInteractions(productRepo, categoryRepo);
     }
 }

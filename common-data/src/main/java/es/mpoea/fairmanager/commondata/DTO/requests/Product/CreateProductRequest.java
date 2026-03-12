@@ -2,6 +2,7 @@ package es.mpoea.fairmanager.commondata.DTO.requests.Product;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import lombok.Builder;
 
 public record CreateProductRequest(
 
@@ -11,8 +12,6 @@ public record CreateProductRequest(
 
         String description,
 
-        @NotBlank(message = "Category is required.")
-        @Size(max = 120, message = "Category must not exceed 120 characters.")
-        String category
+        Long category
 ) {
 }
