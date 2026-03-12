@@ -29,7 +29,6 @@ public class ProductController {
 
     @PostMapping()
     public ResponseEntity<ProductResponse> createProduct(@Valid @RequestBody CreateProductRequest productDTO, UriComponentsBuilder uriComponentsBuilder) {
-
         CreateProductCommand command = productMapper.toCreateProductCommand(productDTO);
         Product createdProduct = productService.createProduct(command);
 
@@ -45,7 +44,6 @@ public class ProductController {
 
     @PutMapping("/{id}")
     public ResponseEntity<ProductResponse> updateProduct(@PathVariable("id") long id, @Valid @RequestBody UpdateProductRequest productDTO) {
-
         UpdateProductCommand command = productMapper.toUpdateProductCommand(productDTO);
         Product updatedProduct = productService.updateProduct(id, command);
 

@@ -1,5 +1,6 @@
 package es.mpoea.fairmanager.catalog_service.api.configuration;
 
+import es.mpoea.fairmanager.catalog_service.api.exceptions.CategoryNotExistsException;
 import es.mpoea.fairmanager.catalog_service.api.exceptions.ProductNotFoundException;
 import es.mpoea.fairmanager.catalog_service.api.exceptions.ProductsNotExistsException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -17,7 +18,7 @@ import java.util.Map;
  * Global exception handler for the Product Service API. This class will handle exceptions thrown by the controllers and return appropriate HTTP responses.
  */
 @RestControllerAdvice
-public class ProductExceptionHandler {
+public class CatalogExceptionHandler {
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ValidationErrorResponse> handleMethodArgumentNotValid(
@@ -51,7 +52,7 @@ public class ProductExceptionHandler {
         ValidationErrorResponse response = new ValidationErrorResponse(
                 Instant.now(),
                 HttpStatus.NOT_FOUND.value(),
-                "Not Found",
+                "Products Not Found",
                 ex.getMessage(),
                 request.getRequestURI(),
                 Map.of()
@@ -69,7 +70,24 @@ public class ProductExceptionHandler {
         ValidationErrorResponse response = new ValidationErrorResponse(
                 Instant.now(),
                 HttpStatus.NOT_FOUND.value(),
-                "Not Found",
+                "Product Not Found",
+                ex.getMessage(),
+                request.getRequestURI(),
+                Map.of()
+        );
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    @ExceptionHandler(CategoryNotExistsException.class)
+    public ResponseEntity<ValidationErrorResponse> handleCategoryNotExistsException(
+            CategoryNotExistsException ex,
+            HttpServletRequest request
+    ) {
+        ValidationErrorResponse response = new ValidationErrorResponse(
+                Instant.now(),
+                HttpStatus.NOT_FOUND.value(),
+                "Category Not Found",
                 ex.getMessage(),
                 request.getRequestURI(),
                 Map.of()
