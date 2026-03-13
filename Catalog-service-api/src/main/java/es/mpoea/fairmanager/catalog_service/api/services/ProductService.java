@@ -22,9 +22,14 @@ public class ProductService {
     private final ProductRepo productRepo;
     private final CategoryRepo categoryRepo;
 
+    @Transactional
     public Product createProduct(CreateProductCommand createCommand) {
+        String categoryName = createCommand.categoryName();
 
-        Category category = categoryRepo.findById(createCommand.categoryId()).orElseThrow(() -> new CategoryNotExistsException(createCommand.categoryId()));
+        if (categoryName == null || categoryName.isBlank())
+            return productRepo.save(new Product (createCommand.label(), createCommand.description(), null));
+
+        Category category = categoryRepo.findByName(categoryName).orElseGet(() -> categoryRepo.save(new Category(categoryName.trim())));
 
         return productRepo.save(new Product(createCommand.label(), createCommand.description(), category));
     }
@@ -37,11 +42,7 @@ public class ProductService {
     }
 
     public Product getProductById(long productId) {
-        Optional<Product> productOpt = productRepo.findById(productId);
-
-        if (productOpt.isEmpty()) throw new ProductNotFoundException(productId);
-
-        return productOpt.get();
+        return productRepo.findById(productId).orElseThrow(() -> new ProductNotFoundException(productId));
     }
 
     @Transactional
@@ -50,10 +51,13 @@ public class ProductService {
 
         if (command.label() != null) product.setLabel(command.label());
         if (command.description() != null) product.setDescription(command.description());
-        if (command.categoryId() != null) {
-            Category category = categoryRepo.findById(command.categoryId()).orElseThrow(() -> new CategoryNotExistsException(command.categoryId()));
-
-            product.setCategory(category);
+        if (command.categoryName() != null) {
+            if (command.categoryName().isBlank()) product.setCategory(null);
+            else {
+                Category category = categoryRepo.findByName(command.categoryName().trim())
+                        .orElseGet(() -> categoryRepo.save(new Category(command.categoryName().trim())));
+                product.setCategory(category);
+            }
         }
 
         return productRepo.save(product);

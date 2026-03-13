@@ -8,6 +8,7 @@ public record UpdateProductRequest(
 
         String description,
 
-        Long category
+        @Size(max = 120, message = "Category name must not exceed 120 characters.")
+        String categoryName
 ) {
 }
