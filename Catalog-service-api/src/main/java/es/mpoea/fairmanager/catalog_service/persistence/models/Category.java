@@ -1,6 +1,5 @@
 package es.mpoea.fairmanager.catalog_service.persistence.models;
 
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -44,11 +43,19 @@ public class Category {
     @Column(name = "version", nullable = false)
     private Long version;
 
-    @OneToMany(mappedBy = "category", cascade = {CascadeType.PERSIST, CascadeType.MERGE}, fetch = FetchType.LAZY)
-    private List<Product> products = new ArrayList<>();
+    @OneToMany(mappedBy = "category", fetch = FetchType.LAZY)
+    private final List<Product> products = new ArrayList<>();
 
     public void addProduct(Product product) {
-        products.add(product);
+        if (product == null) return;
+
+        product.setCategory(this);
+    }
+
+    public void removeProduct(Product product) {
+        if (product == null) return;
+
+        if (product.getCategory() == this) product.setCategory(null);
     }
 
     public Category(String name) {

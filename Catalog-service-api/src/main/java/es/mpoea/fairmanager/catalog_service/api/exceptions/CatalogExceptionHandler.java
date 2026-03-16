@@ -1,8 +1,5 @@
-package es.mpoea.fairmanager.catalog_service.api.configuration;
+package es.mpoea.fairmanager.catalog_service.api.exceptions;
 
-import es.mpoea.fairmanager.catalog_service.api.exceptions.CategoryNotExistsException;
-import es.mpoea.fairmanager.catalog_service.api.exceptions.ProductNotFoundException;
-import es.mpoea.fairmanager.catalog_service.api.exceptions.ProductsNotExistsException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +14,9 @@ import java.util.Map;
 /**
  * Global exception handler for the Product Service API. This class will handle exceptions thrown by the controllers and return appropriate HTTP responses.
  */
+
+//TODO: ProductAlreadyExistsException, CategoriesNotExistsException
+
 @RestControllerAdvice
 public class CatalogExceptionHandler {
 
@@ -43,24 +43,6 @@ public class CatalogExceptionHandler {
         return ResponseEntity.badRequest().body(response);
     }
 
-    @ExceptionHandler(ProductsNotExistsException.class)
-    public ResponseEntity<ValidationErrorResponse> handleProductsNotExistsException(
-            ProductsNotExistsException ex,
-            HttpServletRequest request
-    ) {
-
-        ValidationErrorResponse response = new ValidationErrorResponse(
-                Instant.now(),
-                HttpStatus.NOT_FOUND.value(),
-                "Products Not Found",
-                ex.getMessage(),
-                request.getRequestURI(),
-                Map.of()
-        );
-
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
-    }
-
     @ExceptionHandler(ProductNotFoundException.class)
     public ResponseEntity<ValidationErrorResponse> handleProductNotFoundException(
             ProductNotFoundException ex,
@@ -70,7 +52,7 @@ public class CatalogExceptionHandler {
         ValidationErrorResponse response = new ValidationErrorResponse(
                 Instant.now(),
                 HttpStatus.NOT_FOUND.value(),
-                "Product Not Found",
+                "Not Found",
                 ex.getMessage(),
                 request.getRequestURI(),
                 Map.of()
@@ -79,21 +61,55 @@ public class CatalogExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
-    @ExceptionHandler(CategoryNotExistsException.class)
+    @ExceptionHandler(CategoryNotFoundException.class)
     public ResponseEntity<ValidationErrorResponse> handleCategoryNotExistsException(
-            CategoryNotExistsException ex,
+            CategoryNotFoundException ex,
             HttpServletRequest request
     ) {
         ValidationErrorResponse response = new ValidationErrorResponse(
                 Instant.now(),
                 HttpStatus.NOT_FOUND.value(),
-                "Category Not Found",
+                "Not Found",
                 ex.getMessage(),
                 request.getRequestURI(),
                 Map.of()
         );
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ValidationErrorResponse> handleIllegalArgumentException(
+            IllegalArgumentException ex,
+            HttpServletRequest request
+    ) {
+        ValidationErrorResponse response = new ValidationErrorResponse(
+                Instant.now(),
+                HttpStatus.BAD_REQUEST.value(),
+                "Bad Request",
+                ex.getMessage(),
+                request.getRequestURI(),
+                Map.of()
+        );
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    @ExceptionHandler(CategoryAlreadyExistsException.class)
+    public ResponseEntity<ValidationErrorResponse> handleCategoryAlreadyExistsException(
+            CategoryAlreadyExistsException ex,
+            HttpServletRequest request
+    ) {
+        ValidationErrorResponse response = new ValidationErrorResponse(
+                Instant.now(),
+                HttpStatus.CONFLICT.value(),
+                "Conflict",
+                ex.getMessage(),
+                request.getRequestURI(),
+                Map.of()
+        );
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
 
 

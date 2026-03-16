@@ -1,31 +1,7 @@
 package es.mpoea.fairmanager.catalog_service.slices;
 
-import es.mpoea.fairmanager.catalog_service.api.commands.CreateProductCommand;
-import es.mpoea.fairmanager.catalog_service.api.commands.UpdateProductCommand;
-import es.mpoea.fairmanager.commondata.DTO.requests.Product.CreateProductRequest;
-import es.mpoea.fairmanager.commondata.DTO.requests.Product.UpdateProductRequest;
-import es.mpoea.fairmanager.commondata.DTO.responses.Product.ProductResponse;
 import es.mpoea.fairmanager.catalog_service.api.controllers.ProductController;
-import es.mpoea.fairmanager.catalog_service.api.exceptions.ProductNotFoundException;
-import es.mpoea.fairmanager.catalog_service.api.exceptions.ProductsNotExistsException;
-import es.mpoea.fairmanager.catalog_service.api.mappers.ProductMapper;
-import es.mpoea.fairmanager.catalog_service.api.services.ProductService;
-import es.mpoea.fairmanager.catalog_service.persistence.models.Product;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
-import org.springframework.http.MediaType;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
-import org.springframework.test.web.servlet.MockMvc;
-import tools.jackson.databind.ObjectMapper;
-
-import java.time.Instant;
-import java.util.List;
-import java.util.UUID;
-
-import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @WebMvcTest(ProductController.class)
 public class ProductControllerTest {

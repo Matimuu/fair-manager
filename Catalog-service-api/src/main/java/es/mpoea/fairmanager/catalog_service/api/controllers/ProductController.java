@@ -1,10 +1,10 @@
 package es.mpoea.fairmanager.catalog_service.api.controllers;
 
-import es.mpoea.fairmanager.commondata.DTO.requests.Product.CreateProductRequest;
-import es.mpoea.fairmanager.commondata.DTO.requests.Product.UpdateProductRequest;
-import es.mpoea.fairmanager.commondata.DTO.responses.Product.ProductResponse;
-import es.mpoea.fairmanager.catalog_service.api.commands.CreateProductCommand;
-import es.mpoea.fairmanager.catalog_service.api.commands.UpdateProductCommand;
+import es.mpoea.fairmanager.commondata.DTO.requests.product.CreateProductRequest;
+import es.mpoea.fairmanager.commondata.DTO.requests.product.UpdateProductRequest;
+import es.mpoea.fairmanager.commondata.DTO.responses.product.ProductResponse;
+import es.mpoea.fairmanager.catalog_service.api.commands.product.CreateProductCommand;
+import es.mpoea.fairmanager.catalog_service.api.commands.product.UpdateProductCommand;
 import es.mpoea.fairmanager.catalog_service.api.mappers.ProductMapper;
 import es.mpoea.fairmanager.catalog_service.api.services.ProductService;
 import es.mpoea.fairmanager.catalog_service.persistence.models.Product;
@@ -16,11 +16,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
-import java.util.LinkedList;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/product")
+@RequestMapping("/api/v1/products")
 @RequiredArgsConstructor
 public class ProductController {
 
@@ -29,49 +28,47 @@ public class ProductController {
 
     @PostMapping()
     public ResponseEntity<ProductResponse> createProduct(@Valid @RequestBody CreateProductRequest productDTO, UriComponentsBuilder uriComponentsBuilder) {
-        CreateProductCommand command = productMapper.toCreateProductCommand(productDTO);
+        CreateProductCommand command = productMapper.toCreateCommand(productDTO);
         Product createdProduct = productService.createProduct(command);
 
         URI location = uriComponentsBuilder
-                .path("/api/v1/product/{id}")
+                .path("/api/v1/products/{id}")
                 .buildAndExpand(createdProduct.getId())
                 .toUri();
 
-        ProductResponse productResponse = productMapper.toProductResponse(createdProduct);
+        ProductResponse productResponse = productMapper.toResponse(createdProduct);
 
         return ResponseEntity.created(location).body(productResponse);
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<ProductResponse> updateProduct(@PathVariable("id") long id, @Valid @RequestBody UpdateProductRequest productDTO) {
-        UpdateProductCommand command = productMapper.toUpdateProductCommand(productDTO);
+        UpdateProductCommand command = productMapper.toUpdateCommand(productDTO);
         Product updatedProduct = productService.updateProduct(id, command);
 
-        ProductResponse productResponse = productMapper.toProductResponse(updatedProduct);
+        ProductResponse productResponse = productMapper.toResponse(updatedProduct);
 
         return ResponseEntity.ok().contentType(MediaType.APPLICATION_JSON).body(productResponse);
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<?> deleteProduct(@PathVariable("id") long id) {
+    public ResponseEntity<Void> deleteProduct(@PathVariable("id") long id) {
         productService.deleteProduct(id);
 
-        return ResponseEntity.ok().build();
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping()
     public ResponseEntity<List<ProductResponse>> getAllProducts() {
         List<Product> products = productService.getAllProducts();
 
-        List<ProductResponse> productResponses = new LinkedList<>(
-                products.stream().map(productMapper::toProductResponse).toList()
-        );
+        List<ProductResponse> productResponses = products.stream().map(productMapper::toResponse).toList();
 
         return ResponseEntity.ok(productResponses);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ProductResponse> getProductById(@PathVariable("id") long id) {
-        return ResponseEntity.ok(productMapper.toProductResponse(productService.getProductById(id)));
+        return ResponseEntity.ok(productMapper.toResponse(productService.getProductById(id)));
     }
 }

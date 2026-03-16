@@ -1,8 +1,7 @@
-package es.mpoea.fairmanager.commondata.DTO.requests.Product;
+package es.mpoea.fairmanager.commondata.DTO.requests.product;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-import lombok.Builder;
 
 public record CreateProductRequest(
 

@@ -1,4 +1,4 @@
-package es.mpoea.fairmanager.commondata.DTO.responses.Category;
+package es.mpoea.fairmanager.commondata.DTO.responses.category;
 
 import java.time.Instant;
 

@@ -1,17 +1,16 @@
 package es.mpoea.fairmanager.catalog_service.persistence.models;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
+import java.util.Objects;
 import java.util.UUID;
 
 @Entity
 @Table(name = "products")
-
 @NoArgsConstructor
 @Getter
 public class Product {
@@ -27,7 +26,7 @@ public class Product {
     @Column(name = "sku", nullable = false, unique = true, columnDefinition = "uuid", updatable = false)
     private UUID sku;
 
-    @Column(name = "label", nullable = false, length = 240)
+    @Column(name = "label", nullable = false, length = 240, unique = true)
     @Setter
     private String label;
 
@@ -50,7 +49,6 @@ public class Product {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
-    @Setter
     private Category category;
 
     public Product(String label, String description, Category category) {
@@ -58,6 +56,21 @@ public class Product {
 
         this.label = label;
         this.description = description;
-        this.category = category;
+        setCategory(category);
+    }
+
+//  Method to maintain bidirectional relationship
+    public void setCategory(Category newCategory) {
+        if (Objects.equals(this.category, newCategory)) return;
+
+        if (this.category != null) {
+            this.category.getProducts().remove(this);
+        }
+
+        this.category = newCategory;
+
+        if (newCategory != null && !newCategory.getProducts().contains(this)) {
+            newCategory.getProducts().add(this);
+        }
     }
 }

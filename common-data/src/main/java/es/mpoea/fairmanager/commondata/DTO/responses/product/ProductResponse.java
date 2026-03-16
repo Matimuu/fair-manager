@@ -1,6 +1,6 @@
-package es.mpoea.fairmanager.commondata.DTO.responses.Product;
+package es.mpoea.fairmanager.commondata.DTO.responses.product;
 
-import es.mpoea.fairmanager.commondata.DTO.responses.Category.CategoryResponse;
+import es.mpoea.fairmanager.commondata.DTO.responses.category.CategoryResponse;
 
 import java.time.Instant;
 import java.util.UUID;

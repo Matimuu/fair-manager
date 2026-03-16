@@ -1,24 +1,8 @@
 package es.mpoea.fairmanager.catalog_service.integrated;
 
-import es.mpoea.fairmanager.catalog_service.api.commands.CreateProductCommand;
-import es.mpoea.fairmanager.catalog_service.api.commands.UpdateProductCommand;
-import es.mpoea.fairmanager.catalog_service.api.exceptions.ProductNotFoundException;
-import es.mpoea.fairmanager.catalog_service.api.services.ProductService;
-import es.mpoea.fairmanager.catalog_service.persistence.models.Product;
-import es.mpoea.fairmanager.catalog_service.persistence.repositories.ProductRepo;
-import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-
-import java.time.Instant;
-import java.util.UUID;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Integration test for ProductService with Repository, JPA and PostgreSQL.

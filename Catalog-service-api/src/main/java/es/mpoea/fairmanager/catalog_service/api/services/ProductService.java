@@ -1,63 +1,87 @@
 package es.mpoea.fairmanager.catalog_service.api.services;
 
-import es.mpoea.fairmanager.catalog_service.api.commands.CreateProductCommand;
-import es.mpoea.fairmanager.catalog_service.api.commands.UpdateProductCommand;
-import es.mpoea.fairmanager.catalog_service.api.exceptions.CategoryNotExistsException;
+import es.mpoea.fairmanager.catalog_service.api.commands.product.CreateProductCommand;
+import es.mpoea.fairmanager.catalog_service.api.commands.product.UpdateProductCommand;
+import es.mpoea.fairmanager.catalog_service.api.exceptions.ProductAlreadyExistsException;
 import es.mpoea.fairmanager.catalog_service.api.exceptions.ProductNotFoundException;
-import es.mpoea.fairmanager.catalog_service.api.exceptions.ProductsNotExistsException;
 import es.mpoea.fairmanager.catalog_service.persistence.models.Category;
 import es.mpoea.fairmanager.catalog_service.persistence.models.Product;
-import es.mpoea.fairmanager.catalog_service.persistence.repositories.CategoryRepo;
 import es.mpoea.fairmanager.catalog_service.persistence.repositories.ProductRepo;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
+
+//TODO Изменить логику получения всех категорий, чтобы не выбраывать исключения
 
 @Service
 @RequiredArgsConstructor
 public class ProductService {
     private final ProductRepo productRepo;
-    private final CategoryRepo categoryRepo;
+    private final CategoryService categoryService;
 
     @Transactional
     public Product createProduct(CreateProductCommand createCommand) {
-        String categoryName = createCommand.categoryName();
+        String label = createCommand.label() == null ? null : createCommand.label().trim();
+
+        if (label == null || label.isBlank())
+            throw new IllegalArgumentException("Product label cannot be null or blank");
+
+        if (productRepo.existsByLabel(label))
+            throw new ProductAlreadyExistsException(label);
+
+        String categoryName = createCommand.categoryName() == null ? null : createCommand.categoryName().trim();
 
         if (categoryName == null || categoryName.isBlank())
-            return productRepo.save(new Product (createCommand.label(), createCommand.description(), null));
+            return productRepo.save(
+                    new Product(label, createCommand.description(), null)
+            );
 
-        Category category = categoryRepo.findByName(categoryName).orElseGet(() -> categoryRepo.save(new Category(categoryName.trim())));
+        Category category = categoryService.getOrCreateCategory(categoryName);
 
-        return productRepo.save(new Product(createCommand.label(), createCommand.description(), category));
+        return productRepo.save(
+                new Product(label, createCommand.description(), category)
+        );
     }
 
     public List<Product> getAllProducts() {
-        List<Product> products = productRepo.findAll();
-        if (products.isEmpty()) throw new ProductsNotExistsException();
-
-        return products;
+        return productRepo.findAllWithCategory();
     }
 
     public Product getProductById(long productId) {
-        return productRepo.findById(productId).orElseThrow(() -> new ProductNotFoundException(productId));
+        return productRepo.findByIdWithCategory(productId).orElseThrow(() -> new ProductNotFoundException(productId));
     }
 
     @Transactional
     public Product updateProduct(long productId, UpdateProductCommand command) {
-        Product product = productRepo.findById(productId).orElseThrow(() -> new ProductNotFoundException(productId));
+        Product product = productRepo
+                .findByIdWithCategory(productId)
+                .orElseThrow(() -> new ProductNotFoundException(productId));
 
-        if (command.label() != null) product.setLabel(command.label());
-        if (command.description() != null) product.setDescription(command.description());
-        if (command.categoryName() != null) {
-            if (command.categoryName().isBlank()) product.setCategory(null);
-            else {
-                Category category = categoryRepo.findByName(command.categoryName().trim())
-                        .orElseGet(() -> categoryRepo.save(new Category(command.categoryName().trim())));
-                product.setCategory(category);
-            }
+        String newLabel = command.label() == null ? null : command.label().trim();
+
+        if (newLabel != null) {
+            if (newLabel.isBlank()) throw new IllegalArgumentException("New label cannot be null or blank");
+            productRepo.findByLabel(newLabel)
+                    .filter(prod -> prod.getId() != productId)
+                    .ifPresent(found -> {
+                        throw new ProductAlreadyExistsException(newLabel);
+                    });
+
+            product.setLabel(newLabel);
+        }
+
+        if (command.description() != null)
+            product.setDescription(command.description());
+
+        String newCategoryName = command.categoryName() == null ? null : command.categoryName().trim();
+
+        if (newCategoryName != null) {
+            if (newCategoryName.isBlank())
+                product.setCategory(null);
+            else
+                product.setCategory(categoryService.getOrCreateCategory(newCategoryName));
         }
 
         return productRepo.save(product);

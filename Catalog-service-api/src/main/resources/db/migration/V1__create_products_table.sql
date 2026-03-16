@@ -15,3 +15,6 @@ CREATE TABLE products
 
 ALTER TABLE products
     ADD CONSTRAINT uc_products_sku UNIQUE (sku);
+
+ALTER TABLE products
+    ADD CONSTRAINT uc_products_label UNIQUE (label);

@@ -1,18 +1,18 @@
 package es.mpoea.fairmanager.catalog_service.api.mappers;
 
 import es.mpoea.fairmanager.catalog_service.persistence.models.Category;
-import es.mpoea.fairmanager.commondata.DTO.requests.Product.CreateProductRequest;
-import es.mpoea.fairmanager.commondata.DTO.requests.Product.UpdateProductRequest;
-import es.mpoea.fairmanager.commondata.DTO.responses.Category.CategoryResponse;
-import es.mpoea.fairmanager.commondata.DTO.responses.Product.ProductResponse;
-import es.mpoea.fairmanager.catalog_service.api.commands.CreateProductCommand;
-import es.mpoea.fairmanager.catalog_service.api.commands.UpdateProductCommand;
+import es.mpoea.fairmanager.commondata.DTO.requests.product.CreateProductRequest;
+import es.mpoea.fairmanager.commondata.DTO.requests.product.UpdateProductRequest;
+import es.mpoea.fairmanager.commondata.DTO.responses.category.CategoryResponse;
+import es.mpoea.fairmanager.commondata.DTO.responses.product.ProductResponse;
+import es.mpoea.fairmanager.catalog_service.api.commands.product.CreateProductCommand;
+import es.mpoea.fairmanager.catalog_service.api.commands.product.UpdateProductCommand;
 import es.mpoea.fairmanager.catalog_service.persistence.models.Product;
 import org.springframework.stereotype.Component;
 
 @Component
 public class ProductMapper {
-    public ProductResponse toProductResponse(Product product) {
+    public ProductResponse toResponse(Product product) {
         Category category = product.getCategory();
         CategoryResponse categoryResponse = null;
 
@@ -36,7 +36,7 @@ public class ProductMapper {
         );
     }
 
-    public CreateProductCommand toCreateProductCommand(CreateProductRequest request) {
+    public CreateProductCommand toCreateCommand(CreateProductRequest request) {
         return new CreateProductCommand(
                 request.label(),
                 request.description(),
@@ -44,7 +44,7 @@ public class ProductMapper {
         );
     }
 
-    public UpdateProductCommand toUpdateProductCommand(UpdateProductRequest request) {
+    public UpdateProductCommand toUpdateCommand(UpdateProductRequest request) {
         return new UpdateProductCommand(
                 request.label(),
                 request.description(),
