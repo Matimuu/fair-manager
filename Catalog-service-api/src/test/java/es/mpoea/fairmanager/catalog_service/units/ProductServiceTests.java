@@ -2,6 +2,7 @@ package es.mpoea.fairmanager.catalog_service.units;
 
 import es.mpoea.fairmanager.catalog_service.api.commands.product.CreateProductCommand;
 import es.mpoea.fairmanager.catalog_service.api.exceptions.product.ProductAlreadyExistsException;
+import es.mpoea.fairmanager.catalog_service.api.exceptions.product.ProductNotFoundException;
 import es.mpoea.fairmanager.catalog_service.api.services.CategoryService;
 import es.mpoea.fairmanager.catalog_service.api.services.ProductService;
 import es.mpoea.fairmanager.catalog_service.persistence.models.Category;
@@ -10,6 +11,9 @@ import es.mpoea.fairmanager.catalog_service.persistence.repositories.ProductRepo
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
+
+import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -328,9 +332,90 @@ public class ProductServiceTests {
     Get
     * */
 
+    @Test
+    void getAllProducts_shouldReturnProductsList_whenExists() {
+        List<Product> products = List.of(
+          new Product("Label1", "Description1", EXISTING_CATEGORY),
+          new Product("Label2", "Description2", EXISTING_CATEGORY)
+        );
+
+        when(productRepo.findAllWithCategory()).thenReturn(products);
+
+        List<Product> result = productService.getAllProducts();
+
+        assertAll(
+                () -> assertNotNull(result),
+                () -> assertFalse(result.isEmpty()),
+                () -> assertEquals(products.size(), result.size()),
+
+                () -> assertEquals(products.get(0).getLabel(), result.get(0).getLabel()),
+                () -> assertEquals(products.get(0).getDescription(), result.get(0).getDescription()),
+                () -> assertEquals(products.get(0).getCategory().getName(), result.get(0).getCategory().getName()),
+
+                () -> assertEquals(products.get(1).getLabel(), result.get(1).getLabel()),
+                () -> assertEquals(products.get(1).getDescription(), result.get(1).getDescription()),
+                () -> assertEquals(products.get(1).getCategory().getName(), result.get(1).getCategory().getName())
+        );
+
+        verify(productRepo).findAllWithCategory();
+    }
+
+    @Test
+    void getAllProducts_shouldReturnEmptyList_whenNotExists() {
+        when(productRepo.findAllWithCategory()).thenReturn(List.of());
+
+        List<Product> result = productService.getAllProducts();
+
+        assertAll(
+                () -> assertNotNull(result),
+                () -> assertTrue(result.isEmpty()),
+                () -> assertEquals(0, result.size())
+        );
+
+        verify(productRepo).findAllWithCategory();
+    }
+
+    @Test
+    void getProductById_shouldReturnProduct_whenExists() {
+        Product existingProduct = new Product("Label", "Description", EXISTING_CATEGORY);
+        long existingProductId = 1;
+
+        when(productRepo.findByIdWithCategory(existingProductId)).thenReturn(Optional.of(existingProduct));
+
+        Product result = productService.getProductById(existingProductId);
+
+        assertAll(
+                () -> assertNotNull(result),
+                () -> assertEquals(existingProduct.getSku(), result.getSku()),
+                () -> assertEquals(existingProduct.getLabel(), result.getLabel()),
+                () -> assertEquals(existingProduct.getDescription(), result.getDescription()),
+
+                () -> assertEquals(existingProduct.getCategory().getName(), result.getCategory().getName())
+        );
+    }
+
+    @Test
+    void getProductById_shouldThrowProductNotFoundException_whenProductNotExists() {
+        long notExistingProductId = 404;
+        String ERROR_MESSAGE = "Product with id %d not found";
+
+        when(productRepo.findByIdWithCategory(notExistingProductId)).thenReturn(Optional.empty());
+
+        assertAll(
+                () -> {
+                    ProductNotFoundException ex = assertThrows(ProductNotFoundException.class, () -> productService.getProductById(notExistingProductId));
+                    assertEquals(ERROR_MESSAGE.formatted(notExistingProductId), ex.getMessage());
+                }
+        );
+
+        verify(productRepo).findByIdWithCategory(notExistingProductId);
+    }
+
     /*
     Update
     * */
+
+
 
     /*
     Delete

@@ -48,7 +48,8 @@ public class ProductService {
     }
 
     public Product getProductById(long productId) {
-        return productRepo.findByIdWithCategory(productId).orElseThrow(() -> new ProductNotFoundException(productId));
+        return productRepo.findByIdWithCategory(productId)
+                .orElseThrow(() -> new ProductNotFoundException(productId));
     }
 
     @Transactional

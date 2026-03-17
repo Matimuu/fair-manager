@@ -11,7 +11,8 @@ public class CatalogServiceApplication {
     }
 
     /* TODO:
-    * Нужно написать тесты для проверки получения данных продукта (ProductServiceTests.java)
+    * Нужно проверить правильность тестов для получения данных продукта
+    * Нужно написать тесты для проверки обновления данных продукта (ProductServiceTests.java)
     * */
 
 }
