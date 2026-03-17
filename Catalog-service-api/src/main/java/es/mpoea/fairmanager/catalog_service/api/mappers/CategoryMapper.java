@@ -11,11 +11,15 @@ import org.springframework.stereotype.Component;
 @Component
 public class CategoryMapper {
     public CreateCategoryCommand toCreateCommand(CreateCategoryRequest request) {
-        return new CreateCategoryCommand(request.name());
+        return new CreateCategoryCommand(
+                request.name()
+        );
     }
 
     public UpdateCategoryCommand toUpdateCommand(UpdateCategoryRequest request) {
-        return new UpdateCategoryCommand(request.name());
+        return new UpdateCategoryCommand(
+                request.name()
+        );
     }
 
     public CategoryResponse toResponse(Category category) {

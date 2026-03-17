@@ -1,4 +1,4 @@
-package es.mpoea.fairmanager.catalog_service.api.exceptions;
+package es.mpoea.fairmanager.catalog_service.api.exceptions.category;
 
 public class CategoryNotFoundException extends RuntimeException {
 

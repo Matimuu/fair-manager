@@ -10,4 +10,8 @@ public class CatalogServiceApplication {
         SpringApplication.run(CatalogServiceApplication.class, args);
     }
 
+    /* TODO:
+    * Нужно написать тесты для проверки получения данных продукта (ProductServiceTests.java)
+    * */
+
 }

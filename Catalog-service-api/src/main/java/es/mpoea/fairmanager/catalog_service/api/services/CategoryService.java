@@ -2,8 +2,8 @@ package es.mpoea.fairmanager.catalog_service.api.services;
 
 import es.mpoea.fairmanager.catalog_service.api.commands.category.CreateCategoryCommand;
 import es.mpoea.fairmanager.catalog_service.api.commands.category.UpdateCategoryCommand;
-import es.mpoea.fairmanager.catalog_service.api.exceptions.CategoryAlreadyExistsException;
-import es.mpoea.fairmanager.catalog_service.api.exceptions.CategoryNotFoundException;
+import es.mpoea.fairmanager.catalog_service.api.exceptions.category.CategoryAlreadyExistsException;
+import es.mpoea.fairmanager.catalog_service.api.exceptions.category.CategoryNotFoundException;
 import es.mpoea.fairmanager.catalog_service.persistence.models.Category;
 import es.mpoea.fairmanager.catalog_service.persistence.repositories.CategoryRepo;
 import es.mpoea.fairmanager.catalog_service.persistence.repositories.ProductRepo;
@@ -14,7 +14,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 
-//TODO Изменить логику получения всех категорий, чтобы не выбраывать исключения
 @Service
 @RequiredArgsConstructor
 public class CategoryService {
@@ -81,7 +80,7 @@ public class CategoryService {
                 .findByName(categoryName)
                 .filter(cat -> cat.getId() != id)
                 .ifPresent(found -> {
-                    throw new CategoryAlreadyExistsException(categoryName);
+                    throw new CategoryAlreadyExistsException(command.name());
                 });
 
         category.setName(categoryName);

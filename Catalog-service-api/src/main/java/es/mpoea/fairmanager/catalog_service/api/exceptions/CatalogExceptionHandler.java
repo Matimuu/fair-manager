@@ -1,5 +1,8 @@
 package es.mpoea.fairmanager.catalog_service.api.exceptions;
 
+import es.mpoea.fairmanager.catalog_service.api.exceptions.category.CategoryAlreadyExistsException;
+import es.mpoea.fairmanager.catalog_service.api.exceptions.category.CategoryNotFoundException;
+import es.mpoea.fairmanager.catalog_service.api.exceptions.product.ProductNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -48,7 +51,6 @@ public class CatalogExceptionHandler {
             ProductNotFoundException ex,
             HttpServletRequest request
     ) {
-
         ValidationErrorResponse response = new ValidationErrorResponse(
                 Instant.now(),
                 HttpStatus.NOT_FOUND.value(),

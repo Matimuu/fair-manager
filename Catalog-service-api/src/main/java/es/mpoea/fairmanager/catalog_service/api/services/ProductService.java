@@ -2,8 +2,8 @@ package es.mpoea.fairmanager.catalog_service.api.services;
 
 import es.mpoea.fairmanager.catalog_service.api.commands.product.CreateProductCommand;
 import es.mpoea.fairmanager.catalog_service.api.commands.product.UpdateProductCommand;
-import es.mpoea.fairmanager.catalog_service.api.exceptions.ProductAlreadyExistsException;
-import es.mpoea.fairmanager.catalog_service.api.exceptions.ProductNotFoundException;
+import es.mpoea.fairmanager.catalog_service.api.exceptions.product.ProductAlreadyExistsException;
+import es.mpoea.fairmanager.catalog_service.api.exceptions.product.ProductNotFoundException;
 import es.mpoea.fairmanager.catalog_service.persistence.models.Category;
 import es.mpoea.fairmanager.catalog_service.persistence.models.Product;
 import es.mpoea.fairmanager.catalog_service.persistence.repositories.ProductRepo;
@@ -12,8 +12,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-
-//TODO Изменить логику получения всех категорий, чтобы не выбраывать исключения
 
 @Service
 @RequiredArgsConstructor

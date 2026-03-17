@@ -1,27 +1,24 @@
 package es.mpoea.fairmanager.catalog_service.units;
 
 import es.mpoea.fairmanager.catalog_service.api.commands.product.CreateProductCommand;
-import es.mpoea.fairmanager.catalog_service.api.commands.product.UpdateProductCommand;
-import es.mpoea.fairmanager.catalog_service.api.exceptions.ProductNotFoundException;
+import es.mpoea.fairmanager.catalog_service.api.exceptions.product.ProductAlreadyExistsException;
+import es.mpoea.fairmanager.catalog_service.api.services.CategoryService;
 import es.mpoea.fairmanager.catalog_service.api.services.ProductService;
 import es.mpoea.fairmanager.catalog_service.persistence.models.Category;
 import es.mpoea.fairmanager.catalog_service.persistence.models.Product;
-import es.mpoea.fairmanager.catalog_service.persistence.repositories.CategoryRepo;
 import es.mpoea.fairmanager.catalog_service.persistence.repositories.ProductRepo;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
-import java.util.List;
-import java.util.Optional;
-
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 public class ProductServiceTests {
 
     private ProductRepo productRepo;
-    private CategoryRepo categoryRepo;
+    private CategoryService categoryService;
     private ProductService productService;
 
     private static final Long EXISTING_PRODUCT_ID = 10L;
@@ -32,13 +29,313 @@ public class ProductServiceTests {
     private static final String EXISTING_CATEGORY_NAME = "Existing category";
     private static final Category EXISTING_CATEGORY = new Category("Existing category");
 
-//    @BeforeEach
-//    void setUp() {
-//        productRepo = mock(ProductRepo.class);
-//        categoryRepo = mock(CategoryRepo.class);
-//        productService = new ProductService(productRepo, categoryRepo);
-//    }
-//
+    @BeforeEach
+    void setUp() {
+        productRepo = mock(ProductRepo.class);
+        categoryService = mock(CategoryService.class);
+
+        productService = new ProductService(productRepo, categoryService);
+    }
+
+    /*
+    Create
+    * */
+
+    @Test
+    void createProduct_shouldReturnProductWithCategory() {
+        CreateProductCommand command = new CreateProductCommand(
+                "Label",
+                "Description",
+                EXISTING_CATEGORY_NAME);
+
+        when(productRepo.existsByLabel(command.label()))
+                .thenReturn(false);
+        when(categoryService.getOrCreateCategory(EXISTING_CATEGORY_NAME))
+                .thenReturn(EXISTING_CATEGORY);
+        when(productRepo.save(any(Product.class)))
+                .thenAnswer(i -> i.getArgument(0));
+
+        ArgumentCaptor<Product> trap = ArgumentCaptor.forClass(Product.class);
+
+        Product result = productService.createProduct(command);
+
+        assertAll(
+                () -> assertNotNull(result),
+                () -> assertNotNull(result.getSku()),
+                () -> assertEquals(command.label(), result.getLabel()),
+                () -> assertEquals(command.description(), result.getDescription()),
+
+                () -> assertNotNull(result.getCategory()),
+                () -> assertEquals(EXISTING_CATEGORY_NAME, result.getCategory().getName())
+        );
+
+        verify(productRepo).existsByLabel(command.label());
+        verify(categoryService).getOrCreateCategory(EXISTING_CATEGORY_NAME);
+        verify(productRepo).save(trap.capture());
+
+        Product providedToRepo = trap.getValue();
+
+        assertAll(
+                () -> assertNotNull(providedToRepo),
+                () -> assertEquals(command.label(), providedToRepo.getLabel()),
+                () -> assertEquals(command.description(), providedToRepo.getDescription()),
+
+                () -> assertNotNull(providedToRepo.getCategory()),
+                () -> assertEquals(EXISTING_CATEGORY_NAME, providedToRepo.getCategory().getName())
+        );
+    }
+
+    @Test
+    void createProduct_shouldReturnProductWithCategory_productNameWithoutBlankSpaces() {
+        String labelWithBlankSpaces = " Label ";
+        String labelWithoutBlankSpaces = "Label";
+
+        CreateProductCommand command = new CreateProductCommand(
+                labelWithBlankSpaces,
+                "Description",
+                EXISTING_CATEGORY_NAME
+        );
+
+        ArgumentCaptor<Product> trap = ArgumentCaptor.forClass(Product.class);
+
+        when(productRepo.existsByLabel(labelWithoutBlankSpaces)).thenReturn(false);
+        when(categoryService.getOrCreateCategory(EXISTING_CATEGORY_NAME)).thenReturn(EXISTING_CATEGORY);
+        when(productRepo.save(any(Product.class))).thenAnswer(i -> i.getArgument(0));
+
+        Product result = productService.createProduct(command);
+
+        assertAll(
+                () -> assertNotNull(result),
+                () -> assertEquals(labelWithoutBlankSpaces, result.getLabel()),
+                () -> assertEquals(command.description(), result.getDescription()),
+
+                () -> assertNotNull(result.getCategory()),
+                () -> assertEquals(EXISTING_CATEGORY_NAME, result.getCategory().getName())
+        );
+
+        verify(productRepo).existsByLabel(labelWithoutBlankSpaces);
+        verify(categoryService).getOrCreateCategory(EXISTING_CATEGORY_NAME);
+        verify(productRepo).save(trap.capture());
+
+        Product providedToRepo = trap.getValue();
+
+        assertAll(
+                () -> assertNotNull(providedToRepo),
+                () -> assertEquals(labelWithoutBlankSpaces, providedToRepo.getLabel()),
+                () -> assertEquals(command.description(), providedToRepo.getDescription()),
+
+                () -> assertNotNull(providedToRepo.getCategory()),
+                () -> assertEquals(EXISTING_CATEGORY_NAME, providedToRepo.getCategory().getName())
+        );
+    }
+
+    @Test
+    void createProduct_shouldReturnProductWithCategory_categoryNameWithoutBlankSpaces() {
+        String categoryNameWithBlankSpaces = " Category ";
+        String categoryNameWithoutBlankSpaces = "Category";
+
+        CreateProductCommand command = new CreateProductCommand(
+                "Label",
+                "Description",
+                categoryNameWithBlankSpaces
+        );
+
+        Category category = new Category(categoryNameWithoutBlankSpaces);
+
+        ArgumentCaptor<Product> ProductTrap = ArgumentCaptor.forClass(Product.class);
+
+        when(productRepo.existsByLabel(command.label())).thenReturn(false);
+        when(categoryService.getOrCreateCategory(categoryNameWithoutBlankSpaces)).thenReturn(category);
+        when(productRepo.save(any(Product.class))).thenAnswer(i -> i.getArgument(0));
+
+        Product result = productService.createProduct(command);
+
+        assertAll(
+                () -> assertNotNull(result),
+                () -> assertEquals(command.label(), result.getLabel()),
+                () -> assertEquals(command.description(), result.getDescription()),
+
+                () -> assertNotNull(result.getCategory()),
+                () -> assertEquals(categoryNameWithoutBlankSpaces, result.getCategory().getName())
+        );
+
+        verify(productRepo).existsByLabel(command.label());
+        verify(categoryService).getOrCreateCategory(categoryNameWithoutBlankSpaces);
+        verify(productRepo).save(ProductTrap.capture());
+
+        Product providedToRepo = ProductTrap.getValue();
+
+        assertAll(
+                () -> assertNotNull(providedToRepo),
+                () -> assertEquals(command.label(), providedToRepo.getLabel()),
+                () -> assertEquals(command.description(), providedToRepo.getDescription()),
+
+                () -> assertNotNull(providedToRepo.getCategory()),
+                () -> assertEquals(categoryNameWithoutBlankSpaces, providedToRepo.getCategory().getName())
+        );
+    }
+
+    @Test
+    void createProduct_shouldReturnProductWithoutCategory_whenCategoryNameIsNull() {
+        CreateProductCommand command = new CreateProductCommand(
+                "Label",
+                "Description",
+                null
+        );
+
+        when(productRepo.existsByLabel(command.label()))
+                .thenReturn(false);
+        when(productRepo.save(any(Product.class)))
+                .thenAnswer(i -> i.getArgument(0));
+
+        ArgumentCaptor<Product> trap = ArgumentCaptor.forClass(Product.class);
+
+        Product result = productService.createProduct(command);
+
+        assertAll(
+                () -> assertNotNull(result),
+                () -> assertEquals(command.label(), result.getLabel()),
+                () -> assertEquals(command.description(), result.getDescription()),
+
+                () -> assertNull(result.getCategory())
+        );
+
+        verify(productRepo).existsByLabel(command.label());
+        verifyNoInteractions(categoryService);
+        verify(productRepo).save(trap.capture());
+
+        Product providedToRepo = trap.getValue();
+
+        assertAll(
+                () -> assertNotNull(providedToRepo),
+                () -> assertEquals(command.label(), providedToRepo.getLabel()),
+                () -> assertEquals(command.description(), providedToRepo.getDescription()),
+
+                () -> assertNull(providedToRepo.getCategory())
+        );
+    }
+
+    @Test
+    void createProduct_shouldReturnProductWithoutCategory_whenCategoryNameIsBlank() {
+        CreateProductCommand command = new CreateProductCommand(
+                "Label",
+                "Description",
+                " "
+        );
+
+        when(productRepo.existsByLabel(command.label()))
+                .thenReturn(false);
+        when(productRepo.save(any(Product.class)))
+                .thenAnswer(i -> i.getArgument(0));
+
+        ArgumentCaptor<Product> trap = ArgumentCaptor.forClass(Product.class);
+
+        Product result = productService.createProduct(command);
+
+        assertAll(
+                () -> assertNotNull(result),
+                () -> assertEquals(command.label(), result.getLabel()),
+                () -> assertEquals(command.description(), result.getDescription()),
+
+                () -> assertNull(result.getCategory())
+        );
+
+        verify(productRepo).existsByLabel(command.label());
+        verifyNoInteractions(categoryService);
+        verify(productRepo).save(trap.capture());
+
+        Product providedToRepo = trap.getValue();
+
+        assertAll(
+                () -> assertNotNull(providedToRepo),
+                () -> assertEquals(command.label(), providedToRepo.getLabel()),
+                () -> assertEquals(command.description(), providedToRepo.getDescription()),
+
+                () -> assertNull(providedToRepo.getCategory())
+        );
+    }
+
+    @Test
+    void createProduct_shouldThrowIllegalArgumentException_whenProductLabelIsNull() {
+        String ERROR_MESSAGE = "Product label cannot be null or blank";
+        CreateProductCommand commandNullLabel = new CreateProductCommand(
+                null,
+                "Description",
+                EXISTING_CATEGORY_NAME
+        );
+
+        assertAll(
+                () -> {
+                    IllegalArgumentException ex = assertThrows(
+                            IllegalArgumentException.class,
+                            () -> productService.createProduct(commandNullLabel)
+                    );
+                    assertEquals(ERROR_MESSAGE, ex.getMessage());
+                }
+        );
+
+        verifyNoInteractions(productRepo, categoryService);
+    }
+
+    @Test
+    void createProduct_shouldThrowIllegalArgumentException_whenProductLabelIsBlank() {
+        String ERROR_MESSAGE = "Product label cannot be null or blank";
+
+        CreateProductCommand commandBlankLabel = new CreateProductCommand(
+                " ",
+                "Description",
+                EXISTING_CATEGORY_NAME
+        );
+
+        assertAll(
+                () -> {
+                    IllegalArgumentException ex = assertThrows(
+                            IllegalArgumentException.class,
+                            () -> productService.createProduct(commandBlankLabel)
+                    );
+                    assertEquals(ERROR_MESSAGE, ex.getMessage());
+                }
+        );
+
+        verifyNoInteractions(productRepo, categoryService);
+    }
+
+    @Test
+    void createProduct_shouldThrowProductAlreadyExistsException() {
+        CreateProductCommand command = new CreateProductCommand(
+                "Label",
+                "Description",
+                EXISTING_CATEGORY_NAME
+        );
+
+        when(productRepo.existsByLabel(command.label())).thenReturn(true);
+
+        assertAll(
+                () -> {
+                    ProductAlreadyExistsException ex = assertThrows(
+                            ProductAlreadyExistsException.class,
+                            () -> productService.createProduct(command)
+                    );
+                    assertEquals("Product with name %s already exists.".formatted(command.label()), ex.getMessage());
+                }
+        );
+
+        verify(productRepo).existsByLabel(command.label());
+        verifyNoInteractions(categoryService);
+    }
+
+    /*
+    Get
+    * */
+
+    /*
+    Update
+    * */
+
+    /*
+    Delete
+    * */
+
 //    @Test
 //    void updateProduct_shouldUpdateOnlyNonNullFields() {
 //        Product oldProduct = new Product("Oldlabel", "Old description", EXISTING_CATEGORY);
