@@ -99,9 +99,7 @@ public class ProductService {
 
     @Transactional
     public void deleteProduct(long id) {
-        if (!productRepo.existsById(id)) {
-            throw new ProductNotFoundException(id);
-        }
+        productRepo.findById(id).orElseThrow(() -> new ProductNotFoundException(id));
 
         productRepo.deleteById(id);
     }

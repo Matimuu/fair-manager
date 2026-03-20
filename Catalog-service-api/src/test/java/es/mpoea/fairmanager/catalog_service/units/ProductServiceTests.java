@@ -872,33 +872,33 @@ public class ProductServiceTests {
 
     @Test
     void deleteProduct_shouldDeleteProduct() {
+        long productId = 1L;
 
+        when(productRepo.findById(productId))
+                .thenReturn(Optional.of(EXISTING_PRODUCT));
+
+        productService.deleteProduct(productId);
+
+        verify(productRepo).findById(productId);
+        verify(productRepo).deleteById(productId);
+        verifyNoMoreInteractions(productRepo);
     }
 
-//    @Test
-//    void deleteProduct_shouldDeleteExistingProduct() {
-//        when(productRepo.existsById(EXISTING_PRODUCT_ID)).thenReturn(true);
-//
-//        assertDoesNotThrow(() -> productService.deleteProduct(EXISTING_PRODUCT_ID));
-//
-//        verify(productRepo, times(1)).existsById(EXISTING_PRODUCT_ID);
-//        verify(productRepo, times(1)).deleteById(EXISTING_PRODUCT_ID);
-//
-//        verifyNoMoreInteractions(productRepo, categoryRepo);
-//    }
-//
-//    @Test
-//    void deleteProduct_shouldThrow_whenProductNotFound() {
-//        long id = 404L;
-//
-//        when(productRepo.existsById(id)).thenReturn(false);
-//
-//        assertThrows(ProductNotFoundException.class, () -> productService.deleteProduct(id));
-//
-//        verify(productRepo, times(1)).existsById(id);
-//        verify(productRepo, never()).deleteById(anyLong());
-//        verifyNoMoreInteractions(productRepo);
-//        verifyNoMoreInteractions(categoryRepo);
-//    }
-//
+    @Test
+    void deleteProduct_shouldThrowProductNotFoundException_whenProductDoesNotExist() {
+        long productId = 404L;
+        String ERROR_MESSAGE = "Product with id %d not found";
+
+        when(productRepo.findById(productId))
+                .thenReturn(Optional.empty());
+
+        ProductNotFoundException ex = assertThrows(ProductNotFoundException.class,
+                () -> productService.deleteProduct(productId));
+
+        assertEquals(ERROR_MESSAGE.formatted(productId), ex.getMessage());
+
+        verify(productRepo).findById(productId);
+        verify(productRepo, never()).deleteById(productId);
+        verifyNoMoreInteractions(productRepo);
+    }
 }
