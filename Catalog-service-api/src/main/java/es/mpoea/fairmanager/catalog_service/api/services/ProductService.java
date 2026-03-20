@@ -58,23 +58,34 @@ public class ProductService {
                 .findByIdWithCategory(productId)
                 .orElseThrow(() -> new ProductNotFoundException(productId));
 
-        String newLabel = command.label() == null ? null : command.label().trim();
+        if (
+                command.label() == null &&
+                command.description() == null &&
+                command.categoryName() == null
+        )
+            return product;
+
+        String newLabel = command.label() == null ?
+                null : command.label().trim();
 
         if (newLabel != null) {
-            if (newLabel.isBlank()) throw new IllegalArgumentException("New label cannot be null or blank");
-            productRepo.findByLabel(newLabel)
-                    .filter(prod -> prod.getId() != productId)
-                    .ifPresent(found -> {
-                        throw new ProductAlreadyExistsException(newLabel);
-                    });
+            if (newLabel.isBlank())
+                throw new IllegalArgumentException("New label cannot be null or blank");
 
-            product.setLabel(newLabel);
+            if (!product.getLabel().equals(newLabel)) {
+                productRepo.findByLabel(newLabel)
+                        .ifPresent(found -> {
+                            throw new ProductAlreadyExistsException(newLabel);
+                        });
+
+                product.setLabel(newLabel);
+            }
         }
-
         if (command.description() != null)
             product.setDescription(command.description());
 
-        String newCategoryName = command.categoryName() == null ? null : command.categoryName().trim();
+        String newCategoryName = command.categoryName() == null ?
+                null : command.categoryName().trim();
 
         if (newCategoryName != null) {
             if (newCategoryName.isBlank())
