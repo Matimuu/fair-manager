@@ -2,6 +2,7 @@ package es.mpoea.fairmanager.catalog_service.api.exceptions;
 
 import es.mpoea.fairmanager.catalog_service.api.exceptions.category.CategoryAlreadyExistsException;
 import es.mpoea.fairmanager.catalog_service.api.exceptions.category.CategoryNotFoundException;
+import es.mpoea.fairmanager.catalog_service.api.exceptions.product.ProductAlreadyExistsException;
 import es.mpoea.fairmanager.catalog_service.api.exceptions.product.ProductNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
@@ -18,10 +19,12 @@ import java.util.Map;
  * Global exception handler for the Product Service API. This class will handle exceptions thrown by the controllers and return appropriate HTTP responses.
  */
 
-//TODO: ProductAlreadyExistsException, CategoriesNotExistsException
-
 @RestControllerAdvice
 public class CatalogExceptionHandler {
+
+    /*
+    *   GENERAL ERRORS
+    * */
 
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ValidationErrorResponse> handleMethodArgumentNotValid(
@@ -46,6 +49,27 @@ public class CatalogExceptionHandler {
         return ResponseEntity.badRequest().body(response);
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ValidationErrorResponse> handleIllegalArgumentException(
+            IllegalArgumentException ex,
+            HttpServletRequest request
+    ) {
+        ValidationErrorResponse response = new ValidationErrorResponse(
+                Instant.now(),
+                HttpStatus.BAD_REQUEST.value(),
+                "Bad Request",
+                ex.getMessage(),
+                request.getRequestURI(),
+                Map.of()
+        );
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
+    }
+
+    /*
+     *   Product ERRORS
+     * */
+
     @ExceptionHandler(ProductNotFoundException.class)
     public ResponseEntity<ValidationErrorResponse> handleProductNotFoundException(
             ProductNotFoundException ex,
@@ -62,6 +86,27 @@ public class CatalogExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
+
+    @ExceptionHandler(ProductAlreadyExistsException.class)
+    public ResponseEntity<ValidationErrorResponse> handleProductAlreadyExistsException(
+            ProductAlreadyExistsException ex,
+            HttpServletRequest request
+    ) {
+        ValidationErrorResponse response = new ValidationErrorResponse(
+                Instant.now(),
+                HttpStatus.CONFLICT.value(),
+                "Conflict",
+                ex.getMessage(),
+                request.getRequestURI(),
+                Map.of()
+        );
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
+    }
+
+    /*
+     *   Category ERRORS
+     * */
 
     @ExceptionHandler(CategoryNotFoundException.class)
     public ResponseEntity<ValidationErrorResponse> handleCategoryNotExistsException(
@@ -80,23 +125,6 @@ public class CatalogExceptionHandler {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(response);
     }
 
-    @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<ValidationErrorResponse> handleIllegalArgumentException(
-            IllegalArgumentException ex,
-            HttpServletRequest request
-    ) {
-        ValidationErrorResponse response = new ValidationErrorResponse(
-                Instant.now(),
-                HttpStatus.BAD_REQUEST.value(),
-                "Bad Request",
-                ex.getMessage(),
-                request.getRequestURI(),
-                Map.of()
-        );
-
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
-    }
-
     @ExceptionHandler(CategoryAlreadyExistsException.class)
     public ResponseEntity<ValidationErrorResponse> handleCategoryAlreadyExistsException(
             CategoryAlreadyExistsException ex,
@@ -113,7 +141,6 @@ public class CatalogExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
-
 
     public record ValidationErrorResponse(
             Instant timestamp,

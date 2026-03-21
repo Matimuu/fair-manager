@@ -12,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -23,14 +22,13 @@ public class CategoryService {
 
     @Transactional
     public Category createCategory(CreateCategoryCommand command) {
-        String categoryName = command.name() == null ? null : command.name().trim();
+        String categoryName = command.name() == null ?
+                null : command.name().trim();
 
         if (categoryName == null || categoryName.isBlank())
             throw new IllegalArgumentException("Category name cannot be null or blank");
 
-        Optional<Category> category = categoryRepo.findByName(categoryName);
-
-        if (category.isPresent())
+        if (categoryRepo.existsByName(categoryName))
             throw new CategoryAlreadyExistsException(categoryName);
 
         return categoryRepo.save(new Category(categoryName));
@@ -38,7 +36,8 @@ public class CategoryService {
 
     @Transactional
     public Category getOrCreateCategory(String name) {
-        String categoryName = name == null ? null : name.trim();
+        String categoryName = name == null ?
+                null : name.trim();
 
         if (categoryName == null || categoryName.isBlank())
             throw new IllegalArgumentException("Category name cannot be null or blank");
@@ -49,11 +48,14 @@ public class CategoryService {
     }
 
     public Category getCategory(String name) {
-        if (name == null || name.isBlank())
-            throw new IllegalArgumentException("Category name cannot be null or blank");
+        String categoryName = name == null ?
+                null : name.trim();
 
-        return categoryRepo.findByName(name.trim())
-                .orElseThrow(() -> new CategoryNotFoundException(name));
+        if (categoryName == null || categoryName.isBlank())
+                throw new IllegalArgumentException("Category name cannot be null or blank");
+
+        return categoryRepo.findByName(categoryName)
+                .orElseThrow(() -> new CategoryNotFoundException(categoryName));
     }
 
     public Category getCategory(long id) {
@@ -67,7 +69,8 @@ public class CategoryService {
 
     @Transactional
     public Category updateCategory(long id, UpdateCategoryCommand command) {
-        String categoryName = command.name() == null ? null : command.name().trim();
+        String categoryName = command.name() == null ?
+                null : command.name().trim();
 
         if (categoryName == null || categoryName.isBlank())
             throw new IllegalArgumentException("Category name cannot be null or blank");
