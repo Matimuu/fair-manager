@@ -355,17 +355,67 @@ public class CategoryServiceTest {
 
     @Test
     void getOrCreateCategory_shouldThrowIllegalArgumentException_whenNameIsNull() {
-//        TODO
+        String ERROR_MESSAGE = "Category name cannot be null or blank";
+        String categoryName = null;
+
+        assertAll(
+                () -> {
+                    var ex = assertThrows(IllegalArgumentException.class,
+                            () -> categoryService.getOrCreateCategory(categoryName));
+
+                    assertEquals(ERROR_MESSAGE, ex.getMessage());
+                }
+        );
+
+        verifyNoInteractions(categoryRepo);
     }
 
     @Test
     void getOrCreateCategory_shouldThrowIllegalArgumentException_whenNameIsBlank() {
-//        TODO
+        String ERROR_MESSAGE = "Category name cannot be null or blank";
+        String categoryName = " ";
+
+        assertAll(
+                () -> {
+                    var ex = assertThrows(IllegalArgumentException.class,
+                            () -> categoryService.getOrCreateCategory(categoryName));
+
+                    assertEquals(ERROR_MESSAGE, ex.getMessage());
+                }
+        );
+
+        verifyNoInteractions(categoryRepo);
     }
 
     @Test
     void getOrCreateCategory_shouldCreateAndReturnCategory_withNameWithoutBlankSpaces() {
-//        TODO
+        String categoryNameWithSpaces = " Default ";
+        String categoryNameWithoutSpaces = "Default";
+
+        ArgumentCaptor<Category> trap = ArgumentCaptor.forClass(Category.class);
+
+        when(categoryRepo.findByName(categoryNameWithoutSpaces))
+                .thenReturn(Optional.empty());
+        when(categoryRepo.save(any(Category.class)))
+                .thenReturn(EXISTING_CATEGORY);
+
+
+        Category result = categoryService.getOrCreateCategory(categoryNameWithSpaces);
+
+        verify(categoryRepo).save(trap.capture());
+
+        Category toRepo = trap.getValue();
+
+        assertAll(
+                () -> assertNotNull(result),
+                () -> assertNotNull(toRepo),
+
+                () -> assertEquals(categoryNameWithoutSpaces, toRepo.getName())
+        );
+
+        verify(categoryRepo).findByName(categoryNameWithoutSpaces);
+        verify(categoryRepo).save(any(Category.class));
+        verifyNoMoreInteractions(categoryRepo);
     }
 
     /*
