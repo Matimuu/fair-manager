@@ -8,8 +8,13 @@ import es.mpoea.fairmanager.catalog_service.api.services.CategoryService;
 import es.mpoea.fairmanager.catalog_service.persistence.models.Category;
 import es.mpoea.fairmanager.catalog_service.persistence.repositories.CategoryRepo;
 import es.mpoea.fairmanager.catalog_service.persistence.repositories.ProductRepo;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,23 +23,26 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+@ExtendWith(MockitoExtension.class)
 public class CategoryServiceTest {
 
-    private final CategoryRepo categoryRepo;
-    private final ProductRepo productRepo;
-    private final CategoryService categoryService;
+    @Mock
+    private CategoryRepo categoryRepo;
 
-    private final long EXISTING_CATEGORY_ID = 1L;
-    private final long NOT_EXISTING_CATEGORY_ID = 404L;
-    private static final Category EXISTING_CATEGORY = new Category(
-            "Default"
-    );
+    @Mock
+    private ProductRepo productRepo;
 
-    public CategoryServiceTest() {
-        categoryRepo = mock(CategoryRepo.class);
-        productRepo = mock(ProductRepo.class);
+    @InjectMocks
+    private CategoryService categoryService;
 
-        categoryService = new CategoryService(categoryRepo, productRepo);
+    private Category existingCategory;
+
+    private static final long EXISTING_CATEGORY_ID = 1L;
+    private static final long NOT_EXISTING_CATEGORY_ID = 404L;
+
+    @BeforeEach
+    void setUp() {
+        existingCategory = new Category("Default");
     }
 
     /*
@@ -52,7 +60,7 @@ public class CategoryServiceTest {
         when(categoryRepo.existsByName(categoryName))
                 .thenReturn(false);
         when(categoryRepo.save(any(Category.class)))
-                .thenReturn(EXISTING_CATEGORY);
+                .thenReturn(existingCategory);
 
         Category result = categoryService.createCategory(command);
 
@@ -102,7 +110,7 @@ public class CategoryServiceTest {
     @Test
     void createCategory_shouldThrowCategoryAlreadyExistsException_whenCategoryNameAlreadyExists() {
         String ERROR_MESSAGE = "Category with name %s already exists";
-        String categoryName = EXISTING_CATEGORY.getName();
+        String categoryName = existingCategory.getName();
 
         CreateCategoryCommand command = new CreateCategoryCommand(
                 categoryName
@@ -199,13 +207,13 @@ public class CategoryServiceTest {
     @Test
     void getCategoryById_shouldReturnCategory() {
         when(categoryRepo.findById(EXISTING_CATEGORY_ID))
-                .thenReturn(Optional.of(EXISTING_CATEGORY));
+                .thenReturn(Optional.of(existingCategory));
 
         Category result = categoryService.getCategory(EXISTING_CATEGORY_ID);
 
         assertAll(
                 () -> assertNotNull(result),
-                () -> assertSame(EXISTING_CATEGORY, result)
+                () -> assertSame(existingCategory, result)
         );
 
         verify(categoryRepo).findById(EXISTING_CATEGORY_ID);
@@ -234,16 +242,16 @@ public class CategoryServiceTest {
 
     @Test
     void getCategoryByName_shouldReturnCategory() {
-        String categoryName = EXISTING_CATEGORY.getName();
+        String categoryName = existingCategory.getName();
 
         when(categoryRepo.findByName(categoryName))
-                .thenReturn(Optional.of(EXISTING_CATEGORY));
+                .thenReturn(Optional.of(existingCategory));
 
         Category result = categoryService.getCategory(categoryName);
 
         assertAll(
                 () -> assertNotNull(result),
-                () -> assertSame(EXISTING_CATEGORY, result)
+                () -> assertSame(existingCategory, result)
         );
 
         verify(categoryRepo).findByName(categoryName);
@@ -253,7 +261,7 @@ public class CategoryServiceTest {
     @Test
     void getCategoryByName_shouldThrowCategoryNotFoundException_whenCategoryNotFound() {
         String ERROR_MESSAGE = "Category with name %s not found";
-        String categoryName = EXISTING_CATEGORY.getName();
+        String categoryName = existingCategory.getName();
 
         when(categoryRepo.findByName(categoryName))
                 .thenReturn(Optional.empty());
@@ -305,16 +313,16 @@ public class CategoryServiceTest {
 
     @Test
     void getOrCreateCategory_shouldReturnExistingCategory() {
-        String categoryName = EXISTING_CATEGORY.getName();
+        String categoryName = existingCategory.getName();
 
         when(categoryRepo.findByName(categoryName))
-                .thenReturn(Optional.of(EXISTING_CATEGORY));
+                .thenReturn(Optional.of(existingCategory));
 
         Category result = categoryService.getOrCreateCategory(categoryName);
 
         assertAll(
                 () -> assertNotNull(result),
-                () -> assertSame(EXISTING_CATEGORY, result)
+                () -> assertSame(existingCategory, result)
         );
 
         verify(categoryRepo).findByName(categoryName);
@@ -398,7 +406,7 @@ public class CategoryServiceTest {
         when(categoryRepo.findByName(categoryNameWithoutSpaces))
                 .thenReturn(Optional.empty());
         when(categoryRepo.save(any(Category.class)))
-                .thenReturn(EXISTING_CATEGORY);
+                .thenReturn(existingCategory);
 
 
         Category result = categoryService.getOrCreateCategory(categoryNameWithSpaces);
@@ -430,7 +438,7 @@ public class CategoryServiceTest {
         );
 
         when(categoryRepo.findById(EXISTING_CATEGORY_ID))
-                .thenReturn(Optional.of(EXISTING_CATEGORY));
+                .thenReturn(Optional.of(existingCategory));
         when(categoryRepo.findByName(command.name()))
                 .thenReturn(Optional.empty());
         when(categoryRepo.save(any(Category.class)))
@@ -462,7 +470,7 @@ public class CategoryServiceTest {
         ArgumentCaptor<Category> trap = ArgumentCaptor.forClass(Category.class);
 
         when(categoryRepo.findById(EXISTING_CATEGORY_ID))
-                .thenReturn(Optional.of(EXISTING_CATEGORY));
+                .thenReturn(Optional.of(existingCategory));
         when(categoryRepo.findByName(categoryNameWithoutSpaces))
                 .thenReturn(Optional.empty());
         when(categoryRepo.save(any(Category.class)))
@@ -562,7 +570,7 @@ public class CategoryServiceTest {
         );
 
         when(categoryRepo.findById(EXISTING_CATEGORY_ID))
-                .thenReturn(Optional.of(EXISTING_CATEGORY));
+                .thenReturn(Optional.of(existingCategory));
         when(categoryRepo.findByName(command.name()))
                 .thenReturn(Optional.of(alreadyExistingCategory));
 
@@ -577,6 +585,7 @@ public class CategoryServiceTest {
         verify(categoryRepo).findById(EXISTING_CATEGORY_ID);
         verify(categoryRepo).findByName(command.name());
         verifyNoMoreInteractions(categoryRepo);
+
     }
 
     @Test
@@ -586,18 +595,19 @@ public class CategoryServiceTest {
         );
 
         when(categoryRepo.findById(EXISTING_CATEGORY_ID))
-                .thenReturn(Optional.of(EXISTING_CATEGORY));
+                .thenReturn(Optional.of(existingCategory));
 
         Category result = categoryService.updateCategory(EXISTING_CATEGORY_ID, command);
 
         assertAll(
                 () -> assertNotNull(result),
-                () -> assertSame(EXISTING_CATEGORY, result)
+                () -> assertSame(existingCategory, result)
         );
 
         verify(categoryRepo).findById(EXISTING_CATEGORY_ID);
         verify(categoryRepo, never()).findByName(command.name());
         verify(categoryRepo, never()).save(any(Category.class));
+        verifyNoMoreInteractions(categoryRepo);
     }
 
     /*
@@ -605,10 +615,10 @@ public class CategoryServiceTest {
      * */
 
     @Test
-    void deleteCategory_shouldDeleteCategory_andDeattachCategoryFromProducts() {
+    void deleteCategory_shouldDeleteCategory_andDetachCategoryFromProducts() {
         long categoryId = 1L;
 
-        Category category = spy(EXISTING_CATEGORY);
+        Category category = spy(existingCategory);
 
         doReturn(categoryId).when(category).getId();
 
@@ -620,6 +630,7 @@ public class CategoryServiceTest {
         verify(categoryRepo).findById(categoryId);
         verify(productRepo).clearCategoryByCategoryId(categoryId);
         verify(categoryRepo).deleteById(categoryId);
+        verifyNoMoreInteractions(categoryRepo, productRepo);
     }
 
     @Test

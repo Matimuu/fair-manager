@@ -4,6 +4,7 @@ import es.mpoea.fairmanager.catalog_service.api.commands.product.CreateProductCo
 import es.mpoea.fairmanager.catalog_service.api.commands.product.UpdateProductCommand;
 import es.mpoea.fairmanager.catalog_service.api.exceptions.product.ProductAlreadyExistsException;
 import es.mpoea.fairmanager.catalog_service.api.exceptions.product.ProductNotFoundException;
+import es.mpoea.fairmanager.catalog_service.api.utils.Util;
 import es.mpoea.fairmanager.catalog_service.persistence.models.Category;
 import es.mpoea.fairmanager.catalog_service.persistence.models.Product;
 import es.mpoea.fairmanager.catalog_service.persistence.repositories.ProductRepo;
@@ -21,15 +22,13 @@ public class ProductService {
 
     @Transactional
     public Product createProduct(CreateProductCommand createCommand) {
-        String label = createCommand.label() == null ? null : createCommand.label().trim();
-
-        if (label == null || label.isBlank())
-            throw new IllegalArgumentException("Product label cannot be null or blank");
+        String label = Util.normalizeName(createCommand.label());
+        Util.requireValidName(label, "Product label cannot be null or blank");
 
         if (productRepo.existsByLabel(label))
             throw new ProductAlreadyExistsException(label);
 
-        String categoryName = createCommand.categoryName() == null ? null : createCommand.categoryName().trim();
+        String categoryName = Util.normalizeName(createCommand.categoryName());
 
         if (categoryName == null || categoryName.isBlank())
             return productRepo.save(
@@ -65,8 +64,7 @@ public class ProductService {
         )
             return product;
 
-        String newLabel = command.label() == null ?
-                null : command.label().trim();
+        String newLabel = Util.normalizeName(command.label());
 
         if (newLabel != null) {
             if (newLabel.isBlank())
@@ -81,11 +79,11 @@ public class ProductService {
                 product.setLabel(newLabel);
             }
         }
+
         if (command.description() != null)
             product.setDescription(command.description());
 
-        String newCategoryName = command.categoryName() == null ?
-                null : command.categoryName().trim();
+        String newCategoryName = Util.normalizeName(command.categoryName());
 
         if (newCategoryName != null) {
             if (newCategoryName.isBlank())

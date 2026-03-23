@@ -4,6 +4,7 @@ import es.mpoea.fairmanager.catalog_service.api.commands.category.CreateCategory
 import es.mpoea.fairmanager.catalog_service.api.commands.category.UpdateCategoryCommand;
 import es.mpoea.fairmanager.catalog_service.api.exceptions.category.CategoryAlreadyExistsException;
 import es.mpoea.fairmanager.catalog_service.api.exceptions.category.CategoryNotFoundException;
+import es.mpoea.fairmanager.catalog_service.api.utils.Util;
 import es.mpoea.fairmanager.catalog_service.persistence.models.Category;
 import es.mpoea.fairmanager.catalog_service.persistence.repositories.CategoryRepo;
 import es.mpoea.fairmanager.catalog_service.persistence.repositories.ProductRepo;
@@ -19,14 +20,12 @@ public class CategoryService {
 
     private final CategoryRepo categoryRepo;
     private final ProductRepo productRepo;
+    private static final String ERROR_MESSAGE = "Category name cannot be null or blank";
 
     @Transactional
     public Category createCategory(CreateCategoryCommand command) {
-        String categoryName = command.name() == null ?
-                null : command.name().trim();
-
-        if (categoryName == null || categoryName.isBlank())
-            throw new IllegalArgumentException("Category name cannot be null or blank");
+        String categoryName = Util.normalizeName(command.name());
+        Util.requireValidName(categoryName, ERROR_MESSAGE);
 
         if (categoryRepo.existsByName(categoryName))
             throw new CategoryAlreadyExistsException(categoryName);
@@ -36,11 +35,8 @@ public class CategoryService {
 
     @Transactional
     public Category getOrCreateCategory(String name) {
-        String categoryName = name == null ?
-                null : name.trim();
-
-        if (categoryName == null || categoryName.isBlank())
-            throw new IllegalArgumentException("Category name cannot be null or blank");
+        String categoryName = Util.normalizeName(name);
+        Util.requireValidName(categoryName, ERROR_MESSAGE);
 
         return categoryRepo
                 .findByName(categoryName)
@@ -48,11 +44,8 @@ public class CategoryService {
     }
 
     public Category getCategory(String name) {
-        String categoryName = name == null ?
-                null : name.trim();
-
-        if (categoryName == null || categoryName.isBlank())
-            throw new IllegalArgumentException("Category name cannot be null or blank");
+        String categoryName =  Util.normalizeName(name);
+        Util.requireValidName(categoryName, ERROR_MESSAGE);
 
         return categoryRepo.findByName(categoryName)
                 .orElseThrow(() -> new CategoryNotFoundException(categoryName));
@@ -69,11 +62,8 @@ public class CategoryService {
 
     @Transactional
     public Category updateCategory(long id, UpdateCategoryCommand command) {
-        String categoryName = command.name() == null ?
-                null : command.name().trim();
-
-        if (categoryName == null || categoryName.isBlank())
-            throw new IllegalArgumentException("Category name cannot be null or blank");
+        String categoryName = Util.normalizeName(command.name());
+        Util.requireValidName(categoryName, ERROR_MESSAGE);
 
         Category category = categoryRepo
                 .findById(id)
