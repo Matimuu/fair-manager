@@ -4,8 +4,8 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /* TODO:
- * Нужно проверить правильность тестов для получения данных продукта
- * Нужно написать тесты для проверки обновления данных продукта (ProductServiceTests.java)
+ * Нужно подумать и создать доменные исключения для Illegal сценариев
+ *
  * */
 
 @SpringBootApplication
