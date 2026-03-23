@@ -52,7 +52,7 @@ public class CategoryService {
                 null : name.trim();
 
         if (categoryName == null || categoryName.isBlank())
-                throw new IllegalArgumentException("Category name cannot be null or blank");
+            throw new IllegalArgumentException("Category name cannot be null or blank");
 
         return categoryRepo.findByName(categoryName)
                 .orElseThrow(() -> new CategoryNotFoundException(categoryName));
@@ -79,12 +79,15 @@ public class CategoryService {
                 .findById(id)
                 .orElseThrow(() -> new CategoryNotFoundException(id));
 
+        if (categoryName.equals(category.getName()))
+            return category;
+
         categoryRepo
                 .findByName(categoryName)
-                .filter(cat -> cat.getId() != id)
                 .ifPresent(found -> {
-                    throw new CategoryAlreadyExistsException(command.name());
-                });
+                            throw new CategoryAlreadyExistsException(categoryName);
+                        }
+                );
 
         category.setName(categoryName);
 
