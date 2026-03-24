@@ -435,12 +435,11 @@ public class ProductServiceTest {
         String newDescription = "New description";
         String newCategoryName = "New category";
 
-        Product existingProduct = spy(new Product(
+        Product existingProduct = new Product(
                 orgLabel,
                 orgDescription,
                 existingCategory
-        ));
-
+        );
 
         Category newCategory = new Category(
                 newCategoryName
@@ -453,8 +452,6 @@ public class ProductServiceTest {
         );
 
         ArgumentCaptor<Product> trap = ArgumentCaptor.forClass(Product.class);
-
-        doReturn(productId).when(existingProduct).getId();
 
         when(productRepo
                 .findByIdWithCategory(productId))
@@ -528,15 +525,11 @@ public class ProductServiceTest {
         long productId = 1L;
         String ERROR_MESSAGE = "New label cannot be null or blank";
 
-        Product existingProduct = mock(Product.class);
-
         UpdateProductCommand command = new UpdateProductCommand(
                 " ",
                 "New description",
                 "New category"
         );
-
-        when(existingProduct.getId()).thenReturn(productId);
 
         when(productRepo
                 .findByIdWithCategory(productId))
@@ -563,19 +556,15 @@ public class ProductServiceTest {
         String existingLabel = "Existing label";
         String ERROR_MESSAGE = "Product with name %s already exists.";
 
-        Product productFirst = spy(
-                new Product(
-                        "Label",
-                        "Description",
-                        existingCategory
-                )
+        Product productFirst = new Product(
+                "Label",
+                "Description",
+                existingCategory
         );
-        Product productSecond = spy(
-                new Product(
-                        existingLabel,
-                        "Description",
-                        existingCategory
-                )
+        Product productSecond = new Product(
+                existingLabel,
+                "Description",
+                existingCategory
         );
 
         UpdateProductCommand command = new UpdateProductCommand(
@@ -583,9 +572,6 @@ public class ProductServiceTest {
                 "New description",
                 "New category"
         );
-
-        doReturn(productId).when(productFirst).getId();
-        doReturn(2L).when(productSecond).getId();
 
         when(productRepo.findByIdWithCategory(productId)).thenReturn(Optional.of(productFirst));
         when(productRepo.findByLabel(existingLabel)).thenReturn(Optional.of(productSecond));
