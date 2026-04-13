@@ -2,12 +2,14 @@ package es.mpoea.fairmanager.catalog_service.slices.Jpa;
 
 import es.mpoea.fairmanager.catalog_service.persistence.models.Category;
 import es.mpoea.fairmanager.catalog_service.persistence.repositories.CategoryRepo;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
 import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
 import org.springframework.boot.jpa.test.autoconfigure.TestEntityManager;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.testcontainers.containers.PostgreSQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
@@ -38,17 +40,27 @@ public class CategoryJpaTest {
     @Test
     void createCategory_shouldCreateCategory() {
         String name = "Default";
-        Category result = persistCategory(name);
+        Category result = persistAndClear(name);
 
-        Optional<Category> fromDb = categoryRepo.findById(result.getId());
+        assertAll(
+                () -> assertEquals(1, categoryRepo.count()),
+                () -> assertNotNull(result.getId())
+        );
+    }
 
-        assertOptionalCategory_nameEqualsAnd_allFieldsShouldBeNotNull(fromDb, name);
+    @Test
+    void createCategory_shouldThrowException_whenNameIsNull() {
+        String name = null;
+
+        assertThrows(DataIntegrityViolationException.class,
+                () -> categoryRepo.saveAndFlush(new Category(name))
+        );
     }
 
     @Test
     void getCategoryById_shouldReturnCategory() {
         String name = "Default";
-        Category result = persistCategory(name);
+        Category result = persistAndClear(name);
 
         Optional<Category> fromDb = categoryRepo.findById(result.getId());
 
@@ -56,9 +68,18 @@ public class CategoryJpaTest {
     }
 
     @Test
+    void getCategoryById_shouldReturnEmptyOptional_whenCategoryDoesNotExist() {
+        Optional<Category> fromDb = categoryRepo.findById(1L);
+
+        assertAll(
+                () -> assertTrue(fromDb.isEmpty())
+        );
+    }
+
+    @Test
     void findByName_shouldReturnCategory() {
         String name = "Default";
-        persistCategory(name);
+        persistAndClear(name);
 
         Optional<Category> fromDb = categoryRepo.findByName(name);
 
@@ -66,13 +87,25 @@ public class CategoryJpaTest {
     }
 
     @Test
-    void existsByName_shouldReturnTrue() {
+    void findByName_shouldReturnEmptyOptional_whenCategoryDoesNotExist() {
+        Optional<Category> fromDb = categoryRepo.findByName("Not exists");
+
+        assertAll(
+                () -> assertTrue(fromDb.isEmpty())
+        );
+    }
+
+    @Test
+    void existsByName_shouldReturnTrue_whenCategoryExists() {
         String name = "Default";
-        persistCategory(name);
+        persistAndClear(name);
 
-        boolean exists = categoryRepo.existsByName(name);
+        assertTrue(categoryRepo.existsByName(name));
+    }
 
-        assertTrue(exists);
+    @Test
+    void existsByName_shouldReturnFalse_whenCategoryDoesNotExist() {
+        assertFalse(categoryRepo.existsByName("Not exists"));
     }
 
     @Test
@@ -80,7 +113,7 @@ public class CategoryJpaTest {
         String name = "Default";
         String newName = "Updated";
 
-        persistCategory(name);
+        persistAndClear(name);
 
         Category fromDb = categoryRepo.findByName(name).orElseThrow();
 
@@ -99,6 +132,7 @@ public class CategoryJpaTest {
         Optional<Category> updatedFromDb = categoryRepo.findByName(newName);
 
         assertAll(
+                () -> assertTrue(categoryRepo.findByName(name).isEmpty()),
                 () -> assertTrue(updatedFromDb.isPresent()),
 
                 () -> {
@@ -113,11 +147,12 @@ public class CategoryJpaTest {
         );
     }
 
+
     @Test
     void deleteCategory_shouldDeleteCategory() {
         String name = "Default";
 
-        persistCategory(name);
+        persistAndClear(name);
 
         Category fromDb = categoryRepo.findByName(name).orElseThrow();
 
@@ -137,9 +172,8 @@ public class CategoryJpaTest {
     void deleteCategoryByName_shouldDeleteCategory() {
         String name = "Default";
 
-        persistCategory(name);
+        persistAndClear(name);
 
-        categoryRepo.findByName(name).orElseThrow();
         categoryRepo.deleteByName(name);
 
         testEntityManager.flush();
@@ -147,19 +181,18 @@ public class CategoryJpaTest {
 
         Optional<Category> deletedFromDbById = categoryRepo.findByName(name);
 
-        assertTrue(deletedFromDbById.isEmpty());    }
+        assertTrue(deletedFromDbById.isEmpty());
+    }
 
-    private Category persistCategory(String name) {
+    private @NotNull Category persistAndClear(String name) {
         Category category = new Category(name);
 
         Category result = categoryRepo.save(category);
 
         testEntityManager.flush();
         testEntityManager.clear();
-
         return result;
     }
-
     private void assertOptionalCategory_nameEqualsAnd_allFieldsShouldBeNotNull(Optional<Category> category, String name) {
         assertAll(
                 () -> assertTrue(category.isPresent()),
@@ -168,7 +201,7 @@ public class CategoryJpaTest {
                     var assertCategory = category.get();
 
                     assertNotNull(assertCategory.getId());
-                    assertNotNull(name, assertCategory.getName());
+                    assertEquals(name, assertCategory.getName());
                     assertNotNull(assertCategory.getCreatedAt());
                     assertNotNull(assertCategory.getUpdatedAt());
                     assertNotNull(assertCategory.getVersion());

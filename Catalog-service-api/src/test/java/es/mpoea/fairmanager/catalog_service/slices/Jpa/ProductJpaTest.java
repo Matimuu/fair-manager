@@ -22,7 +22,8 @@ public class ProductJpaTest {
 
     @Test
     void createProduct_shouldCreateProduct() {
-//        TODO
+//        Category category = new Category("Default")
+//        Product product = new Product("Label","Description", category);
     }
 
     @Test
